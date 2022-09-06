@@ -13,6 +13,7 @@ import org.bukkit.event.inventory.InventoryPickupItemEvent
 import org.bukkit.event.player.PlayerJoinEvent
 import org.bukkit.plugin.java.JavaPlugin
 import org.bukkit.scoreboard.DisplaySlot
+import org.bukkit.scoreboard.RenderType
 
 class Itemhunt : JavaPlugin(), Listener {
 
@@ -65,6 +66,8 @@ class Itemhunt : JavaPlugin(), Listener {
                 obj.getScore(s).score = scores.lastIndex - index
             }
 
+            obj.renderType = RenderType.INTEGER
+            obj.displaySlot = DisplaySlot.SIDEBAR
             player.scoreboard = board
         }
     }
