@@ -4,16 +4,18 @@ import love.chihuyu.commands.CommandItemhunt
 import love.chihuyu.data.PlayerData
 import love.chihuyu.data.TargetItem
 import love.chihuyu.utils.BossbarUtil
+import love.chihuyu.utils.ScoreboardUtil
 import org.bukkit.Bukkit
 import org.bukkit.ChatColor
+import org.bukkit.Material
+import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
+import org.bukkit.event.EventPriority
 import org.bukkit.event.Listener
-import org.bukkit.event.inventory.InventoryMoveItemEvent
-import org.bukkit.event.inventory.InventoryPickupItemEvent
+import org.bukkit.event.entity.EntityPickupItemEvent
 import org.bukkit.event.player.PlayerJoinEvent
+import org.bukkit.inventory.ItemStack
 import org.bukkit.plugin.java.JavaPlugin
-import org.bukkit.scoreboard.DisplaySlot
-import org.bukkit.scoreboard.RenderType
 
 class Itemhunt : JavaPlugin(), Listener {
 
@@ -31,45 +33,20 @@ class Itemhunt : JavaPlugin(), Listener {
         BossbarUtil.removeBossbar("bruh")
     }
 
-    @EventHandler
-    fun onPick(e: InventoryPickupItemEvent) {
-        if (started) updateScoreboard()
+    @EventHandler(priority = EventPriority.HIGHEST)
+    fun onPick(e: EntityPickupItemEvent) {
+        val item = e.item.itemStack
+        val player = e.entity as? Player ?: return
+        logger.info(item.toString())
+        if (item.type != TargetItem.targetItem || e.item.itemStack.itemMeta?.hasCustomModelData() == true) return
+        e.item.itemStack.itemMeta = e.item.itemStack.itemMeta.apply { this?.setCustomModelData(1) }
+        updateStats(item, player)
     }
 
-    @EventHandler
-    fun onInventory(e: InventoryMoveItemEvent) {
-        logger.info(started.toString())
-        if (started) updateScoreboard()
-    }
-
-    private fun updateScoreboard() {
-        server.onlinePlayers.forEach { player ->
-            val board = server.scoreboardManager!!.newScoreboard
-            board.objectives.forEach { it.unregister() }
-            val obj = board.getObjective(DisplaySlot.SIDEBAR) ?:
-            board.registerNewObjective("main", "", "   ${ChatColor.GOLD}${ChatColor.UNDERLINE}${ChatColor.BOLD}Item Hunt${ChatColor.RESET}   ")
-
-            val sorted = PlayerData.data.mapValues { it.value[TargetItem.targetItem] }.toList().sortedBy { it.second }
-
-            val scores = mutableListOf(
-                " ",
-                "#${sorted.indexOfFirst { it.first == player.uniqueId } + 1} ${player.name} / ${ChatColor.GREEN}${sorted.first { it.first == player.uniqueId }.second}${ChatColor.RESET}",
-                "${ChatColor.STRIKETHROUGH}${ChatColor.BOLD}${ChatColor.GRAY}               "
-            )
-
-            sorted.forEachIndexed { index, pair ->
-                if (index > 4) return@forEachIndexed
-                scores.add(index, "#${index.inc()} ${Bukkit.getOfflinePlayer(pair.first).name} / ${ChatColor.GREEN}${pair.second}${ChatColor.RESET}")
-            }
-
-            scores.forEachIndexed { index, s ->
-                obj.getScore(s).score = scores.lastIndex - index
-            }
-
-            obj.renderType = RenderType.INTEGER
-            obj.displaySlot = DisplaySlot.SIDEBAR
-            player.scoreboard = board
-        }
+    private fun updateStats(stack: ItemStack, player: Player) {
+        PlayerData.data[player.uniqueId]!![stack.type] = (PlayerData.data[player.uniqueId]!![stack.type] ?: 0) + stack.amount
+        if (started) ScoreboardUtil.updateScoreboard()
+        logger.info(PlayerData.data.toString())
     }
 
     override fun onEnable() {

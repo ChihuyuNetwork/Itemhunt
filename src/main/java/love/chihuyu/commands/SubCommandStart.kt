@@ -8,10 +8,9 @@ import dev.jorel.commandapi.executors.ExecutorType
 import love.chihuyu.Itemhunt
 import love.chihuyu.Itemhunt.Companion.plugin
 import love.chihuyu.data.PhaseData
+import love.chihuyu.data.PlayerData
 import love.chihuyu.data.TargetItem
-import love.chihuyu.utils.BossbarUtil
-import love.chihuyu.utils.runTaskLater
-import love.chihuyu.utils.runTaskTimerAsync
+import love.chihuyu.utils.*
 import org.bukkit.Bukkit
 import org.bukkit.Material
 import org.bukkit.NamespacedKey
@@ -32,13 +31,17 @@ object SubCommandStart {
             sender.sendMessage("Game has started!")
             Itemhunt.started = true
 
-            val taskUpdateBossbar = Itemhunt.plugin.runTaskTimerAsync(0, 20) {
+            plugin.server.onlinePlayers.forEach {
+                PlayerData.data[it.uniqueId] = mutableMapOf()
+            }
+
+            val taskUpdateBossbar = plugin.runTaskTimer(0, 20) {
                 val phaseEndEpoch = startedEpoch + (PhaseData.elapsedPhases * phaseTimeLimit)
                 BossbarUtil.removeBossbar("bruh")
 
                 val bossBar = Bukkit.createBossBar(
                     NamespacedKey.fromString("bruh")!!,
-                    "フェーズ ${PhaseData.elapsedPhases} - ${formatTime(phaseEndEpoch - nowEpoch())}",
+                    "フェーズ ${PhaseData.elapsedPhases}/$phases - ${formatTime(phaseEndEpoch - nowEpoch())}",
                     BarColor.RED,
                     BarStyle.SEGMENTED_6
                 )
@@ -51,13 +54,14 @@ object SubCommandStart {
                 }
             }
 
-            val taskUpdateTargetItem = Itemhunt.plugin.runTaskTimerAsync(0, phaseTimeLimit * 20) {
+            val taskUpdateTargetItem = plugin.runTaskTimer(0, phaseTimeLimit * 20) {
                 PhaseData.elapsedPhases++
 
                 TargetItem.targetItem = Material.values().random()
+                ScoreboardUtil.updateScoreboard()
             }
 
-            val taskGameEnd = Itemhunt.plugin.runTaskLater((gameFinishEpoch - startedEpoch) * 20) {
+            val taskGameEnd = plugin.runTaskLater((gameFinishEpoch - startedEpoch) * 20) {
                 BossbarUtil.removeBossbar("bruh")
                 PhaseData.elapsedPhases = 0
                 taskUpdateBossbar.cancel()
