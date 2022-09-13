@@ -13,8 +13,14 @@ import org.bukkit.event.EventHandler
 import org.bukkit.event.EventPriority
 import org.bukkit.event.Listener
 import org.bukkit.event.entity.EntityPickupItemEvent
+import org.bukkit.event.inventory.InventoryClickEvent
+import org.bukkit.event.inventory.InventoryCloseEvent
+import org.bukkit.event.inventory.InventoryDragEvent
+import org.bukkit.event.inventory.InventoryMoveItemEvent
+import org.bukkit.event.inventory.InventoryType
 import org.bukkit.event.player.PlayerJoinEvent
 import org.bukkit.inventory.ItemStack
+import org.bukkit.inventory.PlayerInventory
 import org.bukkit.plugin.java.JavaPlugin
 
 class Itemhunt : JavaPlugin(), Listener {
@@ -22,6 +28,7 @@ class Itemhunt : JavaPlugin(), Listener {
     companion object {
         lateinit var plugin: JavaPlugin
         var started: Boolean = false
+        const val COUNTED_MODEL_DATA = 1
     }
 
     init {
@@ -31,16 +38,46 @@ class Itemhunt : JavaPlugin(), Listener {
     @EventHandler
     fun onJoin(e: PlayerJoinEvent) {
         BossbarUtil.removeBossbar("bruh")
+        PlayerData.data.putIfAbsent(e.player.uniqueId, mutableMapOf())
+        ScoreboardUtil.updateScoreboard()
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)
     fun onPick(e: EntityPickupItemEvent) {
         val item = e.item.itemStack
         val player = e.entity as? Player ?: return
-        logger.info(item.toString())
-        if (item.type != TargetItem.targetItem || e.item.itemStack.itemMeta?.hasCustomModelData() == true) return
-        e.item.itemStack.itemMeta = e.item.itemStack.itemMeta.apply { this?.setCustomModelData(1) }
+        if (item.type != TargetItem.targetItem || item.itemMeta?.hasCustomModelData() == true) return
+        item.itemMeta = item.itemMeta?.apply {
+            this.setCustomModelData(COUNTED_MODEL_DATA)
+            this.lore = mutableListOf("§7§oThis item is already counted.")
+        }
         updateStats(item, player)
+    }
+
+//    @EventHandler(priority = EventPriority.HIGHEST)
+//    fun onClose(e: InventoryCloseEvent) {
+//        val player = e.player as Player
+//        val inventory = e.player.inventory
+//        inventory.contents.filterNotNull().filter { it.type == TargetItem.targetItem }.forEach {
+//            if (it.itemMeta?.hasCustomModelData() == true) return@forEach
+//            it.itemMeta = it.itemMeta?.apply {
+//                this.setCustomModelData(COUNTED_MODEL_DATA)
+//                this.lore = mutableListOf("§7§oThis item is already counted.")
+//            }
+//            updateStats(it, player)
+//        }
+//    }
+
+    @EventHandler(priority = EventPriority.HIGHEST)
+    fun onMove(e: InventoryClickEvent) {
+        val item = e.cursor ?: return
+        val player = e.whoClicked as Player
+        if (item.itemMeta?.hasCustomModelData() == true || item.type != TargetItem.targetItem) return
+        item.itemMeta = item.itemMeta?.apply {
+            this.setCustomModelData(COUNTED_MODEL_DATA)
+            this.lore = mutableListOf("§7§oThis item is already counted.")
+            updateStats(item, player)
+        }
     }
 
     private fun updateStats(stack: ItemStack, player: Player) {

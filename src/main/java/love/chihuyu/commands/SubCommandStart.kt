@@ -4,7 +4,6 @@ import dev.jorel.commandapi.CommandAPICommand
 import dev.jorel.commandapi.arguments.IntegerArgument
 import dev.jorel.commandapi.arguments.LongArgument
 import dev.jorel.commandapi.executors.CommandExecutor
-import dev.jorel.commandapi.executors.ExecutorType
 import love.chihuyu.Itemhunt
 import love.chihuyu.Itemhunt.Companion.plugin
 import love.chihuyu.data.PhaseData
@@ -24,19 +23,17 @@ object SubCommandStart {
         .withArguments(IntegerArgument("phases"), LongArgument("secondsPerPhase"))
         .executes(CommandExecutor { sender, args ->
             val phases = args[0] as Int
-            val phaseTimeLimit = args[1] as Long
+            val secondsPerPhase = args[1] as Long
             val startedEpoch = nowEpoch()
-            val gameFinishEpoch = startedEpoch + (phaseTimeLimit * phases)
+            val gameFinishEpoch = startedEpoch + (secondsPerPhase * phases)
 
             sender.sendMessage("Game has started!")
             Itemhunt.started = true
 
-            plugin.server.onlinePlayers.forEach {
-                PlayerData.data[it.uniqueId] = mutableMapOf()
-            }
+            onGameStart()
 
             val taskUpdateBossbar = plugin.runTaskTimer(0, 20) {
-                val phaseEndEpoch = startedEpoch + (PhaseData.elapsedPhases * phaseTimeLimit)
+                val phaseEndEpoch = startedEpoch + (PhaseData.elapsedPhases * secondsPerPhase)
                 BossbarUtil.removeBossbar("bruh")
 
                 val bossBar = Bukkit.createBossBar(
@@ -46,7 +43,7 @@ object SubCommandStart {
                     BarStyle.SEGMENTED_6
                 )
 
-                bossBar.progress = (1.0 / phaseTimeLimit) * (phaseEndEpoch - nowEpoch())
+                bossBar.progress = (1.0 / secondsPerPhase) * (phaseEndEpoch - nowEpoch())
                 bossBar.isVisible = true
 
                 plugin.server.onlinePlayers.forEach {
@@ -54,7 +51,7 @@ object SubCommandStart {
                 }
             }
 
-            val taskUpdateTargetItem = plugin.runTaskTimer(0, phaseTimeLimit * 20) {
+            val taskUpdateTargetItem = plugin.runTaskTimer(0, secondsPerPhase * 20) {
                 PhaseData.elapsedPhases++
 
                 TargetItem.targetItem = Material.values().random()
@@ -62,14 +59,32 @@ object SubCommandStart {
             }
 
             val taskGameEnd = plugin.runTaskLater((gameFinishEpoch - startedEpoch) * 20) {
-                BossbarUtil.removeBossbar("bruh")
-                PhaseData.elapsedPhases = 0
                 taskUpdateBossbar.cancel()
                 taskUpdateTargetItem.cancel()
-                Itemhunt.started = false
-                clearScoreboard()
+
+                onGameEnd()
             }
         })
+
+    private fun onGameStart() {
+        plugin.server.onlinePlayers.forEach {
+            PlayerData.data[it.uniqueId] = mutableMapOf()
+        }
+
+        plugin.server.broadcastMessage("ゲーム開始！")
+    }
+
+    private fun onGameEnd() {
+        BossbarUtil.removeBossbar("bruh")
+        PhaseData.elapsedPhases = 0
+        Itemhunt.started = false
+        clearScoreboard()
+
+        plugin.server.broadcastMessage("ゲーム終了！")
+        plugin.server.broadcastMessage("勝者は${
+            Bukkit.getOfflinePlayer(PlayerData.data.toList().sortedByDescending { it.second.map { it.value }.sum() }[0].first).name
+        }です")
+    }
 
 
     private fun formatTime(timeSeconds: Long): String {

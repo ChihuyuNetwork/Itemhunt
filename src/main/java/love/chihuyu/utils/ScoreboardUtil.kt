@@ -38,14 +38,14 @@ object ScoreboardUtil {
                 "  ",
                 "   ",
                 // #が先頭の時はRESETいれないと見えなくなる
-                "${ChatColor.RESET}#${data.map { it.first }.indexOf(player.uniqueId) + 1} あなた / ${ChatColor.GREEN}${data.first { it.first == player.uniqueId }.second[TargetItem.targetItem] ?: 0}${ChatColor.RESET}pt",
+                "${ChatColor.RESET}#${data.map { it.first }.indexOf(player.uniqueId) + 1} あなた ${ChatColor.GREEN}${data.first { it.first == player.uniqueId }.second.values.sum()}${ChatColor.RESET}pt",
                 "${ChatColor.GRAY}${ChatColor.STRIKETHROUGH}${ChatColor.BOLD}${" ".repeat(24)}"
             )
 
             data.forEachIndexed { index, pair ->
                 if (index > 4) return@forEachIndexed
-                val value = pair.second.toList().firstOrNull { it.first == TargetItem.targetItem }?.second ?: 0
-                scores.add(index + 3, "${ChatColor.RESET}#${index.inc()} ${Bukkit.getOfflinePlayer(player.uniqueId).name} ${ChatColor.GREEN}${value}${ChatColor.RESET}pt")
+                val value = pair.second.values.sum()
+                scores.add(index + 3, "${ChatColor.RESET}#${index.inc()} ${Bukkit.getOfflinePlayer(pair.first).name} ${ChatColor.GREEN}${value}${ChatColor.RESET}pt")
             }
 
             scores.forEachIndexed { index, s ->
