@@ -29,7 +29,7 @@ object ScoreboardUtil {
             obj.displaySlot = DisplaySlot.SIDEBAR
             obj.renderType = RenderType.INTEGER
 
-            val data = PlayerData.data.toList().sortedByDescending { it.second[TargetItem.targetItem] }
+            val data = PlayerData.data.toList().sortedByDescending { score -> score.second.map { it.value }.sum() }
             val craftItemStack = CraftItemStack.asNMSCopy(ItemStack(TargetItem.targetItem!!))
 
             val scores = mutableListOf(
@@ -38,8 +38,8 @@ object ScoreboardUtil {
                 "  ",
                 "   ",
                 // #が先頭の時はRESETいれないと見えなくなる
-                "${ChatColor.RESET}#${data.map { it.first }.indexOf(player.uniqueId) + 1} あなた ${ChatColor.GREEN}${data.first { it.first == player.uniqueId }.second.values.sum()}${ChatColor.RESET}pt",
-                "${ChatColor.GRAY}${ChatColor.STRIKETHROUGH}${ChatColor.BOLD}${" ".repeat(24)}"
+                "${ChatColor.RESET}#${data.map { it.first }.indexOf(player.uniqueId) + 1} ${ChatColor.BOLD}あなた${ChatColor.RESET} ${ChatColor.GREEN}${data.first { it.first == player.uniqueId }.second.values.sum()}${ChatColor.RESET}pt",
+                "${ChatColor.GRAY}${ChatColor.STRIKETHROUGH}${ChatColor.BOLD}${" ".repeat(32)}"
             )
 
             data.forEachIndexed { index, pair ->

@@ -12,5 +12,8 @@ object TargetItem {
         Material.COARSE_DIRT,
         Material.STONE,
         Material.COBBLESTONE,
+        Material.SAND,
+        Material.SANDSTONE,
+        Material.COBBLESTONE_SLAB
     )
 }
