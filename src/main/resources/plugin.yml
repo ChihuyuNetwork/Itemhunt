@@ -2,7 +2,7 @@ name: Itemhunt
 version: '1.0.0'
 main: love.chihuyu.Itemhunt
 authors: [ Hirosuke ]
-depend: [CommandAPI]
+depend: [CommandAPI, LocaleLib]
 api-version: 1.19
 permissions:
   treasurehunt.*:

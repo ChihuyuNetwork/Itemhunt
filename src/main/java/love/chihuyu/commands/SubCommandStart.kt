@@ -92,7 +92,7 @@ object SubCommandStart {
         }です")
         plugin.server.onlinePlayers.forEach { player ->
             player.sendMessage("あなたは${PlayerData.data.toList().sortedByDescending { it.second.map { it.value }.sum() }.map { it.first }.indexOf(player.uniqueId).inc()}位でした")
-            player.playSound(player, Sound.BLOCK_PORTAL_TRAVEL, .5f, 1f)
+            player.playSound(player, Sound.ENTITY_PLAYER_LEVELUP, .5f, 1f)
         }
     }
 

@@ -6,6 +6,7 @@ import love.chihuyu.data.TargetItem
 import net.md_5.bungee.api.chat.BaseComponent
 import net.md_5.bungee.api.chat.TextComponent
 import net.md_5.bungee.api.chat.TranslatableComponent
+import net.minecraft.network.chat.ChatComponentUtils
 import org.bukkit.Bukkit
 import org.bukkit.ChatColor
 import org.bukkit.Material

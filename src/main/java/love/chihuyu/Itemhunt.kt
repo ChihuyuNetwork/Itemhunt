@@ -89,6 +89,6 @@ class Itemhunt : JavaPlugin(), Listener {
     override fun onEnable() {
         server.pluginManager.registerEvents(this, this)
 
-       CommandItemhunt.main.register()
+        CommandItemhunt.main.register()
     }
 }
