@@ -5,8 +5,7 @@ import love.chihuyu.data.PlayerData
 import love.chihuyu.data.TargetItem
 import love.chihuyu.utils.BossbarUtil
 import love.chihuyu.utils.ScoreboardUtil
-import org.bukkit.Bukkit
-import org.bukkit.ChatColor
+import org.bukkit.GameRule
 import org.bukkit.Material
 import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
@@ -14,13 +13,8 @@ import org.bukkit.event.EventPriority
 import org.bukkit.event.Listener
 import org.bukkit.event.entity.EntityPickupItemEvent
 import org.bukkit.event.inventory.InventoryClickEvent
-import org.bukkit.event.inventory.InventoryCloseEvent
-import org.bukkit.event.inventory.InventoryDragEvent
-import org.bukkit.event.inventory.InventoryMoveItemEvent
-import org.bukkit.event.inventory.InventoryType
 import org.bukkit.event.player.PlayerJoinEvent
 import org.bukkit.inventory.ItemStack
-import org.bukkit.inventory.PlayerInventory
 import org.bukkit.plugin.java.JavaPlugin
 
 class Itemhunt : JavaPlugin(), Listener {
@@ -81,7 +75,10 @@ class Itemhunt : JavaPlugin(), Listener {
     }
 
     private fun updateStats(stack: ItemStack, player: Player) {
-        PlayerData.data[player.uniqueId]!![stack.type] = (PlayerData.data[player.uniqueId]!![stack.type] ?: 0) + stack.amount
+        val targetAndScore = mutableMapOf<Material, Int>()
+        TargetItem.targetData.forEach { (category, materialAndScore) -> materialAndScore.forEach { targetAndScore[it.key] = it.value } }
+        PlayerData.data[player.uniqueId]!![stack.type] = (PlayerData.data[player.uniqueId]!![stack.type] ?: 0) +
+                (stack.amount * (targetAndScore[stack.type] ?: 1) )
         if (started) ScoreboardUtil.updateScoreboard()
         logger.info(PlayerData.data.toString())
     }
@@ -90,5 +87,8 @@ class Itemhunt : JavaPlugin(), Listener {
         server.pluginManager.registerEvents(this, this)
 
         CommandItemhunt.main.register()
+
+        server.worlds.forEach { it.setGameRule(GameRule.FALL_DAMAGE, false) }
+        server.worlds.forEach { it.setGameRule(GameRule.KEEP_INVENTORY, false) }
     }
 }

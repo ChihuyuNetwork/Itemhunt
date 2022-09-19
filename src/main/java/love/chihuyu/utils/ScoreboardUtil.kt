@@ -3,19 +3,13 @@ package love.chihuyu.utils
 import love.chihuyu.Itemhunt.Companion.plugin
 import love.chihuyu.data.PlayerData
 import love.chihuyu.data.TargetItem
-import net.md_5.bungee.api.chat.BaseComponent
-import net.md_5.bungee.api.chat.TextComponent
-import net.md_5.bungee.api.chat.TranslatableComponent
-import net.minecraft.network.chat.ChatComponentUtils
 import org.bukkit.Bukkit
 import org.bukkit.ChatColor
-import org.bukkit.Material
 import org.bukkit.craftbukkit.v1_19_R1.inventory.CraftItemStack
 import org.bukkit.craftbukkit.v1_19_R1.util.CraftChatMessage
 import org.bukkit.inventory.ItemStack
 import org.bukkit.scoreboard.DisplaySlot
 import org.bukkit.scoreboard.RenderType
-import java.util.Locale
 
 object ScoreboardUtil {
 
