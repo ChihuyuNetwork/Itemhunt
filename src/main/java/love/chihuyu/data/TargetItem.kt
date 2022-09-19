@@ -6,6 +6,7 @@ object TargetItem {
 
     var targetItem: Material? = null
 
+    //TODO:setting score per material
     val targetData = hashMapOf(
         // NORMAL
         TargetCategory.NORMAL_BLOCK to mapOf(
