@@ -12,6 +12,7 @@ import org.bukkit.event.EventHandler
 import org.bukkit.event.EventPriority
 import org.bukkit.event.Listener
 import org.bukkit.event.entity.EntityPickupItemEvent
+import org.bukkit.event.inventory.CraftItemEvent
 import org.bukkit.event.inventory.InventoryClickEvent
 import org.bukkit.event.player.PlayerJoinEvent
 import org.bukkit.inventory.ItemStack
@@ -70,8 +71,19 @@ class Itemhunt : JavaPlugin(), Listener {
         item.itemMeta = item.itemMeta?.apply {
             this.setCustomModelData(COUNTED_MODEL_DATA)
             this.lore = mutableListOf("§7§oThis item is already counted.")
-            updateStats(item, player)
         }
+        updateStats(item, player)
+    }
+
+    @EventHandler
+    fun onCraft(e: CraftItemEvent) {
+        val item = e.recipe.result
+        val player = e.whoClicked as Player
+        item.itemMeta = item.itemMeta?.apply {
+            this.setCustomModelData(COUNTED_MODEL_DATA)
+            this.lore = mutableListOf("§7§oThis item is already counted.")
+        }
+        updateStats(item, player)
     }
 
     private fun updateStats(stack: ItemStack, player: Player) {
