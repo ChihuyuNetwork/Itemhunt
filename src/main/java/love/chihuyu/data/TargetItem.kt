@@ -71,7 +71,7 @@ object TargetItem {
             Material.STONECUTTER to 7,
             Material.LOOM to 15,
             Material.FLOWER_POT to 7,
-        ),
+        ), // DONE
         TargetCategory.BLOCK_NETHER to mapOf(
             Material.SOUL_SOIL to 0,
             Material.GLOWSTONE to 0,
@@ -313,7 +313,7 @@ object TargetItem {
             Material.CHARCOAL to 4,
             Material.GOLD_NUGGET to 7,
             Material.RAW_GOLD to 15,
-        ),
+        ), // DONE
         TargetCategory.ORE_NETHER to mapOf(
             Material.QUARTZ to 0,
             Material.ANCIENT_DEBRIS to 0,
