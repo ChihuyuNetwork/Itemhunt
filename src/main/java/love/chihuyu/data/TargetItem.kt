@@ -4,7 +4,7 @@ import org.bukkit.Material
 
 object TargetItem {
 
-    var targetItem: MutableList<Material?> = mutableListOf()
+    var targetItem: MutableSet<Material?> = mutableSetOf()
 
     // TODO:setting score per material
     val targetData = hashMapOf(
