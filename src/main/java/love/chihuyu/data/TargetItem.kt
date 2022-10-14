@@ -545,7 +545,6 @@ object TargetItem {
             Material.CLAY_BALL to 0,
             Material.BOOK to 0,
             Material.PAPER to 0,
-            Material.ENDER_PEARL to 0,
             Material.FEATHER to 0,
             Material.SPIDER_EYE to 0,
             Material.GUNPOWDER to 0,
@@ -564,6 +563,7 @@ object TargetItem {
             Material.SPECTRAL_ARROW to 0,
         ),
         TargetCategory.MATEIRAL_HARD to mapOf(
+            Material.ENDER_PEARL to 0,
             Material.WITHER_SKELETON_SKULL to 0,
             Material.WITHER_ROSE to 0,
             Material.NETHER_STAR to 0,
