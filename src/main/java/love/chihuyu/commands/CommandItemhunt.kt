@@ -7,6 +7,7 @@ import dev.jorel.commandapi.arguments.ListArgumentBuilder
 import dev.jorel.commandapi.arguments.LongArgument
 import dev.jorel.commandapi.executors.CommandExecutor
 import love.chihuyu.Itemhunt
+import love.chihuyu.Itemhunt.Companion.plugin
 import love.chihuyu.data.PhaseData
 import love.chihuyu.data.PlayerData
 import love.chihuyu.data.TargetCategory
@@ -16,6 +17,7 @@ import love.chihuyu.utils.ScoreboardUtil
 import love.chihuyu.utils.runTaskLater
 import love.chihuyu.utils.runTaskTimer
 import org.bukkit.Bukkit
+import org.bukkit.ChatColor
 import org.bukkit.Material
 import org.bukkit.NamespacedKey
 import org.bukkit.Sound
@@ -27,18 +29,25 @@ object CommandItemhunt {
     val main = CommandAPICommand("itemhunt")
         .withSubcommand(
             CommandAPICommand("start")
-                .withArguments(IntegerArgument("phases"), LongArgument("secondsPerPhase"), ListArgumentBuilder<TargetCategory>("materials").allowDuplicates(false).withList(TargetCategory.values().toList()).withStringMapper().build())
+                .withArguments(
+                    IntegerArgument("phases"),
+                    LongArgument("secondsPerPhase"),
+                    IntegerArgument("targets"),
+                    ListArgumentBuilder<TargetCategory>("materials").allowDuplicates(false)
+                        .withList(TargetCategory.values().toList()).withStringMapper().build()
+                )
                 .executes(
                     CommandExecutor { sender, args ->
                         val phases = args[0] as Int
                         val secondsPerPhase = args[1] as Long
-                        val targets = mutableMapOf<Material, Int>()
+                        val materials = mutableMapOf<Material, Int>()
+                        val targets = args[2] as Int
                         val startedEpoch = nowEpoch()
                         val gameFinishEpoch = startedEpoch + (secondsPerPhase * phases)
 
-                        (args[2] as List<TargetCategory>).forEach { category ->
+                        (args[3] as List<TargetCategory>).forEach { category ->
                             TargetItem.targetData[category]?.forEach { (material, score) ->
-                                targets[material] = score
+                                materials[material] = score
                             }
                         }
 
@@ -60,7 +69,7 @@ object CommandItemhunt {
                             bossBar.progress = (1.0 / secondsPerPhase) * (phaseEndEpoch - nowEpoch())
                             bossBar.isVisible = true
 
-                            Itemhunt.plugin.server.onlinePlayers.forEach {
+                            plugin.server.onlinePlayers.forEach {
                                 if (phaseEndEpoch - nowEpoch() in 1..4) {
                                     it.playSound(it, Sound.UI_BUTTON_CLICK, 1f, 1f)
                                 }
@@ -71,15 +80,18 @@ object CommandItemhunt {
                         val taskUpdateTargetItem = Itemhunt.plugin.runTaskTimer(0, secondsPerPhase * 20) {
                             PhaseData.elapsedPhases++
 
-                            TargetItem.targetItem = targets.keys.random()
+                            TargetItem.targetItem.clear()
+                            repeat(targets) {
+                                TargetItem.targetItem += materials.keys.random()
+                            }
                             ScoreboardUtil.updateScoreboard()
 
-                            Itemhunt.plugin.server.onlinePlayers.forEach {
+                            plugin.server.onlinePlayers.forEach {
                                 it.playSound(it, Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1f, 1f)
                             }
                         }
 
-                        val taskGameEnd = Itemhunt.plugin.runTaskLater((gameFinishEpoch - startedEpoch) * 20) {
+                        val taskGameEnd = plugin.runTaskLater((gameFinishEpoch - startedEpoch) * 20) {
                             taskUpdateBossbar.cancel()
                             taskUpdateTargetItem.cancel()
 
@@ -92,11 +104,19 @@ object CommandItemhunt {
         .withAliases("ih")
 
     private fun onGameStart() {
-        Itemhunt.plugin.server.onlinePlayers.forEach {
+        plugin.server.onlinePlayers.forEach {
             PlayerData.data[it.uniqueId] = mutableMapOf()
         }
 
-        Itemhunt.plugin.server.broadcastMessage("ゲーム開始！")
+        plugin.server.broadcastMessage(
+            """
+            ${ChatColor.GOLD}${ChatColor.STRIKETHROUGH}${ChatColor.BOLD}${" ".repeat(24)}${ChatColor.RESET}
+            
+            ゲーム開始！
+            
+            ${ChatColor.GOLD}${ChatColor.STRIKETHROUGH}${ChatColor.BOLD}${" ".repeat(24)}${ChatColor.RESET}
+            """.trimIndent()
+        )
     }
 
     private fun onGameEnd() {
@@ -106,18 +126,25 @@ object CommandItemhunt {
 
         val sortedPlayerData = PlayerData.data.toList().sortedByDescending { it.second.map { it.value }.sum() }
 
-        Itemhunt.plugin.server.broadcastMessage("ゲーム終了！")
-        Itemhunt.plugin.server.broadcastMessage("勝者は${Bukkit.getOfflinePlayer(sortedPlayerData[0].first).name}です")
-        Itemhunt.plugin.server.onlinePlayers.forEach { player ->
-            player.sendMessage("あなたは${sortedPlayerData.map { it.first }.indexOf(player.uniqueId).inc()}位でした")
+        plugin.server.onlinePlayers.forEach { player ->
+            player.sendMessage(
+                """
+            ${ChatColor.GOLD}${ChatColor.STRIKETHROUGH}${ChatColor.BOLD}${" ".repeat(24)}${ChatColor.RESET}
+            
+            ゲーム終了！
+            勝者は${Bukkit.getOfflinePlayer(sortedPlayerData[0].first).name}です
+            あなたは${sortedPlayerData.map { it.first }.indexOf(player.uniqueId).inc()}位でした
+             
+            ${ChatColor.GOLD}${ChatColor.STRIKETHROUGH}${ChatColor.BOLD}${" ".repeat(24)}${ChatColor.RESET}
+            """.trimIndent())
             player.playSound(player, Sound.ENTITY_PLAYER_LEVELUP, .5f, 1f)
         }
     }
 
     private fun formatTime(timeSeconds: Long): String {
         return "${"%02d".format(timeSeconds.floorDiv(3600))}:" +
-            "${"%02d".format(timeSeconds.floorDiv(60))}:" +
-            "%02d".format(timeSeconds % 60)
+                "${"%02d".format(timeSeconds.floorDiv(60))}:" +
+                "%02d".format(timeSeconds % 60)
     }
 
     private fun nowEpoch(): Long {
