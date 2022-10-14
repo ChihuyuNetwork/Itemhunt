@@ -25,7 +25,7 @@ object ScoreboardUtil {
             obj.displaySlot = DisplaySlot.SIDEBAR
             obj.renderType = RenderType.INTEGER
 
-            if (Itemhunt.started) {
+            if (!Itemhunt.started) {
                 val scores = mutableListOf(
                     " ",
                     "待機中...",
