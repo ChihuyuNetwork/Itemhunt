@@ -1,5 +1,6 @@
 package love.chihuyu.utils
 
+import love.chihuyu.Itemhunt
 import love.chihuyu.Itemhunt.Companion.plugin
 import love.chihuyu.data.PlayerData
 import love.chihuyu.data.TargetItem
@@ -23,6 +24,21 @@ object ScoreboardUtil {
             )
             obj.displaySlot = DisplaySlot.SIDEBAR
             obj.renderType = RenderType.INTEGER
+
+            if (Itemhunt.started) {
+                val scores = mutableListOf(
+                    " ",
+                    "待機中...",
+                    "  "
+                )
+
+                scores.forEachIndexed { index, s ->
+                    obj.getScore(s).score = scores.lastIndex - index
+                }
+
+                player.scoreboard = board
+                return
+            }
 
             val data = PlayerData.data.toList().sortedByDescending { score -> score.second.map { it.value }.sum() }
 
