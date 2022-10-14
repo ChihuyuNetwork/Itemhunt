@@ -12,6 +12,7 @@ import org.bukkit.event.EventHandler
 import org.bukkit.event.EventPriority
 import org.bukkit.event.Listener
 import org.bukkit.event.entity.EntityPickupItemEvent
+import org.bukkit.event.entity.FoodLevelChangeEvent
 import org.bukkit.event.inventory.CraftItemEvent
 import org.bukkit.event.inventory.InventoryClickEvent
 import org.bukkit.event.player.PlayerJoinEvent
@@ -35,6 +36,11 @@ class Itemhunt : JavaPlugin(), Listener {
         BossbarUtil.removeBossbar("bruh")
         PlayerData.data.putIfAbsent(e.player.uniqueId, mutableMapOf())
         ScoreboardUtil.updateScoreboard()
+    }
+
+    @EventHandler
+    fun onHunger(e: FoodLevelChangeEvent) {
+        e.isCancelled = true
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)
