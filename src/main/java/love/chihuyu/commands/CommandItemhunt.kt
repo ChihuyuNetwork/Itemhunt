@@ -16,6 +16,11 @@ import love.chihuyu.utils.BossbarUtil
 import love.chihuyu.utils.ScoreboardUtil
 import love.chihuyu.utils.runTaskLater
 import love.chihuyu.utils.runTaskTimer
+import net.md_5.bungee.api.chat.BaseComponent
+import net.md_5.bungee.api.chat.ClickEvent
+import net.md_5.bungee.api.chat.HoverEvent
+import net.md_5.bungee.api.chat.TextComponent
+import net.md_5.bungee.api.chat.hover.content.Text
 import org.bukkit.Bukkit
 import org.bukkit.ChatColor
 import org.bukkit.Material
@@ -110,11 +115,11 @@ object CommandItemhunt {
 
         plugin.server.broadcastMessage(
             """
-            ${ChatColor.GOLD}${ChatColor.STRIKETHROUGH}${ChatColor.BOLD}${" ".repeat(24)}${ChatColor.RESET}
-            
+            ${ChatColor.GOLD}${ChatColor.STRIKETHROUGH}${ChatColor.BOLD}${" ".repeat(42)}${ChatColor.RESET}
+            ${" ".repeat(1)}
             ゲーム開始！
-            
-            ${ChatColor.GOLD}${ChatColor.STRIKETHROUGH}${ChatColor.BOLD}${" ".repeat(24)}${ChatColor.RESET}
+            ${" ".repeat(2)}
+            ${ChatColor.GOLD}${ChatColor.STRIKETHROUGH}${ChatColor.BOLD}${" ".repeat(42)}${ChatColor.RESET}
             """.trimIndent()
         )
     }
@@ -127,16 +132,20 @@ object CommandItemhunt {
         val sortedPlayerData = PlayerData.data.toList().sortedByDescending { it.second.map { it.value }.sum() }
 
         plugin.server.onlinePlayers.forEach { player ->
-            player.sendMessage(
-                """
-            ${ChatColor.GOLD}${ChatColor.STRIKETHROUGH}${ChatColor.BOLD}${" ".repeat(24)}${ChatColor.RESET}
-            
+            player.sendMessage("""
+            ${ChatColor.GOLD}${ChatColor.STRIKETHROUGH}${ChatColor.BOLD}${" ".repeat(42)}${ChatColor.RESET}
+            ${" ".repeat(1)}
             ゲーム終了！
             勝者は${Bukkit.getOfflinePlayer(sortedPlayerData[0].first).name}です
             あなたは${sortedPlayerData.map { it.first }.indexOf(player.uniqueId).inc()}位でした
-             
-            ${ChatColor.GOLD}${ChatColor.STRIKETHROUGH}${ChatColor.BOLD}${" ".repeat(24)}${ChatColor.RESET}
+            ${" ".repeat(2)}
+            ${ChatColor.GOLD}${ChatColor.STRIKETHROUGH}${ChatColor.BOLD}${" ".repeat(42)}${ChatColor.RESET}
             """.trimIndent())
+            player.spigot().sendMessage(TextComponent("${ChatColor.GRAY}カーソルを合わせるとランキングが表示されます").apply {
+                this.hoverEvent = HoverEvent(HoverEvent.Action.SHOW_TEXT, Text(sortedPlayerData.joinToString {
+                    "#${sortedPlayerData.indexOf(it).inc()} ${Bukkit.getOfflinePlayer(it.first).name}\n"
+                }))
+            })
             player.playSound(player, Sound.ENTITY_PLAYER_LEVELUP, .5f, 1f)
         }
 
