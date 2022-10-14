@@ -35,7 +35,7 @@ class Itemhunt : JavaPlugin(), Listener {
     fun onJoin(e: PlayerJoinEvent) {
         BossbarUtil.removeBossbar("bruh")
         PlayerData.data.putIfAbsent(e.player.uniqueId, mutableMapOf())
-        ScoreboardUtil.updateScoreboard()
+        ScoreboardUtil.updateServerScoreboard()
     }
 
     @EventHandler
@@ -88,7 +88,7 @@ class Itemhunt : JavaPlugin(), Listener {
         TargetItem.targetData.forEach { (_, materialAndScore) -> materialAndScore.forEach { targetAndScore[it.key] = it.value } }
         PlayerData.data[player.uniqueId]!![stack.type] = (PlayerData.data[player.uniqueId]!![stack.type] ?: 0) +
             (stack.amount * (targetAndScore[stack.type] ?: 1))
-        if (started) ScoreboardUtil.updateScoreboard()
+        if (started) ScoreboardUtil.updateServerScoreboard()
         logger.info(PlayerData.data.toString())
     }
 

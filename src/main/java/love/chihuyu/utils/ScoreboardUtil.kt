@@ -14,7 +14,7 @@ import org.bukkit.scoreboard.RenderType
 
 object ScoreboardUtil {
 
-    fun updateScoreboard() {
+    fun updateServerScoreboard() {
         plugin.server.onlinePlayers.forEach { player ->
             val board = plugin.server.scoreboardManager!!.newScoreboard
             val obj = board.registerNewObjective(
