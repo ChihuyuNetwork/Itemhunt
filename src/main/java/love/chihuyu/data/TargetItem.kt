@@ -4,9 +4,9 @@ import org.bukkit.Material
 
 object TargetItem {
 
-    var targetItem: Material? = null
+    var targetItem: MutableList<Material?> = mutableListOf()
 
-    //TODO:setting score per material
+    // TODO:setting score per material
     val targetData = hashMapOf(
         // BLOCK
         TargetCategory.BLOCK_NORMAL to mapOf(
@@ -265,7 +265,6 @@ object TargetItem {
             Material.RAIL to 0,
             Material.ACTIVATOR_RAIL to 0,
         ),
-        TargetCategory.FOOD_NETHER to mapOf(),
         TargetCategory.FOOD_HARD to mapOf(
             Material.ENCHANTED_GOLDEN_APPLE to 0,
             Material.CHORUS_FRUIT to 0,
@@ -315,9 +314,9 @@ object TargetItem {
             Material.RAW_GOLD to 15,
         ), // DONE
         TargetCategory.ORE_NETHER to mapOf(
-            Material.QUARTZ to 0,
-            Material.ANCIENT_DEBRIS to 0,
-        ),
+            Material.QUARTZ to 10,
+            Material.ANCIENT_DEBRIS to 40,
+        ), // DONE
         TargetCategory.ORE_HARD to mapOf(
             Material.COAL_ORE to 0,
             Material.DEEPSLATE_COAL_ORE to 0,

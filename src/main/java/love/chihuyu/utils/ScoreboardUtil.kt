@@ -25,11 +25,10 @@ object ScoreboardUtil {
             obj.renderType = RenderType.INTEGER
 
             val data = PlayerData.data.toList().sortedByDescending { score -> score.second.map { it.value }.sum() }
-            val craftItemStack = CraftItemStack.asNMSCopy(ItemStack(TargetItem.targetItem!!))
 
             val scores = mutableListOf(
                 " ",
-                "目標: ${CraftChatMessage.fromComponent(craftItemStack.x())}",
+                "目標リスト",
                 "  ",
                 "   ",
                 // #が先頭の時はRESETいれないと見えなくなる
@@ -37,10 +36,15 @@ object ScoreboardUtil {
                 "${ChatColor.GRAY}${ChatColor.STRIKETHROUGH}${ChatColor.BOLD}${" ".repeat(32)}"
             )
 
+            TargetItem.targetItem.forEachIndexed { index, material ->
+                val craftItemStack = CraftItemStack.asNMSCopy(ItemStack(material!!))
+                scores.add(index + 2, "・${CraftChatMessage.fromComponent(craftItemStack.x())} ${ChatColor.GRAY}(${TargetItem.targetData.map { it.value }.first { it.containsKey(material) }[material]}pt)")
+            }
+
             data.forEachIndexed { index, pair ->
                 if (index > 4) return@forEachIndexed
                 val value = pair.second.values.sum()
-                scores.add(index + 3, "${ChatColor.RESET}#${index.inc()} ${Bukkit.getOfflinePlayer(pair.first).name} ${ChatColor.GREEN}${value}${ChatColor.RESET}pt")
+                scores.add(index + 3 + TargetItem.targetItem.size, "${ChatColor.RESET}#${index.inc()} ${Bukkit.getOfflinePlayer(pair.first).name} ${ChatColor.GREEN}${value}${ChatColor.RESET}pt")
             }
 
             scores.forEachIndexed { index, s ->
