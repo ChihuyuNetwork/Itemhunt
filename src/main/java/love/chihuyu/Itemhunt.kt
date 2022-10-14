@@ -41,11 +41,6 @@ class Itemhunt : JavaPlugin(), Listener {
     fun onPick(e: EntityPickupItemEvent) {
         val item = e.item.itemStack
         val player = e.entity as? Player ?: return
-        if (item.type != TargetItem.targetItem || item.itemMeta?.hasCustomModelData() == true) return
-        item.itemMeta = item.itemMeta?.apply {
-            this.setCustomModelData(COUNTED_MODEL_DATA)
-            this.lore = mutableListOf("§7§oThis item is already counted.")
-        }
         updateStats(item, player)
     }
 
@@ -67,11 +62,6 @@ class Itemhunt : JavaPlugin(), Listener {
     fun onMove(e: InventoryClickEvent) {
         val item = e.cursor ?: return
         val player = e.whoClicked as Player
-        if (item.itemMeta?.hasCustomModelData() == true || item.type != TargetItem.targetItem) return
-        item.itemMeta = item.itemMeta?.apply {
-            this.setCustomModelData(COUNTED_MODEL_DATA)
-            this.lore = mutableListOf("§7§oThis item is already counted.")
-        }
         updateStats(item, player)
     }
 
@@ -79,18 +69,19 @@ class Itemhunt : JavaPlugin(), Listener {
     fun onCraft(e: CraftItemEvent) {
         val item = e.recipe.result
         val player = e.whoClicked as Player
-        item.itemMeta = item.itemMeta?.apply {
-            this.setCustomModelData(COUNTED_MODEL_DATA)
-            this.lore = mutableListOf("§7§oThis item is already counted.")
-        }
         updateStats(item, player)
     }
 
     private fun updateStats(stack: ItemStack, player: Player) {
+        if (stack.itemMeta?.hasCustomModelData() == true || stack.type !in TargetItem.targetItem) return
+        stack.itemMeta = stack.itemMeta?.apply {
+            this.setCustomModelData(COUNTED_MODEL_DATA)
+            this.lore = mutableListOf("§7§oThis item is already counted.")
+        }
         val targetAndScore = mutableMapOf<Material, Int>()
-        TargetItem.targetData.forEach { (category, materialAndScore) -> materialAndScore.forEach { targetAndScore[it.key] = it.value } }
+        TargetItem.targetData.forEach { (_, materialAndScore) -> materialAndScore.forEach { targetAndScore[it.key] = it.value } }
         PlayerData.data[player.uniqueId]!![stack.type] = (PlayerData.data[player.uniqueId]!![stack.type] ?: 0) +
-                (stack.amount * (targetAndScore[stack.type] ?: 1) )
+            (stack.amount * (targetAndScore[stack.type] ?: 1))
         if (started) ScoreboardUtil.updateScoreboard()
         logger.info(PlayerData.data.toString())
     }
