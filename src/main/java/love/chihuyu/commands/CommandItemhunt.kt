@@ -55,7 +55,7 @@ object CommandItemhunt {
 
                         onGameStart()
 
-                        val taskUpdateBossbar = Itemhunt.plugin.runTaskTimer(0, 20) {
+                        val taskUpdateBossbar = plugin.runTaskTimer(0, 20) {
                             val phaseEndEpoch = startedEpoch + (PhaseData.elapsedPhases * secondsPerPhase)
                             BossbarUtil.removeBossbar("bruh")
 
@@ -77,14 +77,14 @@ object CommandItemhunt {
                             }
                         }
 
-                        val taskUpdateTargetItem = Itemhunt.plugin.runTaskTimer(0, secondsPerPhase * 20) {
+                        val taskUpdateTargetItem = plugin.runTaskTimer(0, secondsPerPhase * 20) {
                             PhaseData.elapsedPhases++
 
                             TargetItem.targetItem.clear()
                             repeat(targets) {
                                 TargetItem.targetItem += materials.keys.random()
                             }
-                            ScoreboardUtil.updateScoreboard()
+                            ScoreboardUtil.updateServerScoreboard()
 
                             plugin.server.onlinePlayers.forEach {
                                 it.playSound(it, Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1f, 1f)
@@ -139,6 +139,8 @@ object CommandItemhunt {
             """.trimIndent())
             player.playSound(player, Sound.ENTITY_PLAYER_LEVELUP, .5f, 1f)
         }
+
+        ScoreboardUtil.updateServerScoreboard()
     }
 
     private fun formatTime(timeSeconds: Long): String {
