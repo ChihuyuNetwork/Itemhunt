@@ -4,18 +4,28 @@ import love.chihuyu.commands.CommandItemhunt
 import love.chihuyu.data.PlayerData
 import love.chihuyu.data.TargetItem
 import love.chihuyu.utils.BossbarUtil
+import love.chihuyu.utils.DataUtil
 import love.chihuyu.utils.ScoreboardUtil
+import org.bukkit.Difficulty
+import org.bukkit.GameMode
 import org.bukkit.GameRule
 import org.bukkit.Material
+import org.bukkit.enchantments.Enchantment
 import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
 import org.bukkit.event.EventPriority
 import org.bukkit.event.Listener
+import org.bukkit.event.block.Action
 import org.bukkit.event.entity.EntityPickupItemEvent
 import org.bukkit.event.entity.FoodLevelChangeEvent
 import org.bukkit.event.inventory.CraftItemEvent
 import org.bukkit.event.inventory.InventoryClickEvent
+import org.bukkit.event.inventory.InventoryMoveItemEvent
+import org.bukkit.event.inventory.InventoryType
+import org.bukkit.event.player.PlayerInteractEvent
 import org.bukkit.event.player.PlayerJoinEvent
+import org.bukkit.inventory.Inventory
+import org.bukkit.inventory.ItemFlag
 import org.bukkit.inventory.ItemStack
 import org.bukkit.plugin.java.JavaPlugin
 
@@ -25,6 +35,15 @@ class Itemhunt : JavaPlugin(), Listener {
         lateinit var plugin: JavaPlugin
         var started: Boolean = false
         const val COUNTED_MODEL_DATA = 1
+        val POINT_HOPPER = ItemStack(Material.NETHER_STAR).apply {
+            val meta = this.itemMeta ?: return@apply
+            this.itemMeta = meta
+
+            meta.setDisplayName("ポイントホッパー")
+            meta.addItemFlags(ItemFlag.HIDE_ATTRIBUTES, ItemFlag.HIDE_ENCHANTS)
+
+            this.addUnsafeEnchantment(Enchantment.MENDING, 0)
+        }
     }
 
     init {
@@ -33,21 +52,24 @@ class Itemhunt : JavaPlugin(), Listener {
 
     @EventHandler
     fun onJoin(e: PlayerJoinEvent) {
+        val player = e.player
+
         BossbarUtil.removeBossbar("bruh")
         PlayerData.data.putIfAbsent(e.player.uniqueId, mutableMapOf())
         ScoreboardUtil.updateServerScoreboard()
+
+        if (started) {
+            player.gameMode = GameMode.SURVIVAL
+            player.isInvulnerable = false
+        } else {
+            player.gameMode = GameMode.ADVENTURE
+            player.isInvulnerable = true
+        }
     }
 
     @EventHandler
     fun onHunger(e: FoodLevelChangeEvent) {
         e.isCancelled = true
-    }
-
-    @EventHandler(priority = EventPriority.HIGHEST)
-    fun onPick(e: EntityPickupItemEvent) {
-        val item = e.item.itemStack
-        val player = e.entity as? Player ?: return
-        updateStats(item, player)
     }
 
 //    @EventHandler(priority = EventPriority.HIGHEST)
@@ -64,18 +86,22 @@ class Itemhunt : JavaPlugin(), Listener {
 //        }
 //    }
 
-    @EventHandler(priority = EventPriority.HIGHEST)
-    fun onMove(e: InventoryClickEvent) {
-        val item = e.cursor ?: return
-        val player = e.whoClicked as Player
-        updateStats(item, player)
+    @EventHandler
+    fun onClick(e: PlayerInteractEvent) {
+        val action = e.action
+        val player = e.player
+        val item = e.item ?: return
+
+        if (action != Action.LEFT_CLICK_AIR && action != Action.LEFT_CLICK_BLOCK && item != POINT_HOPPER) return
     }
 
-    @EventHandler
-    fun onCraft(e: CraftItemEvent) {
-        val item = e.recipe.result
+    @EventHandler(priority = EventPriority.HIGHEST)
+    fun onMove(e: InventoryClickEvent) {
+        val item = e.currentItem ?: return
         val player = e.whoClicked as Player
-        updateStats(item, player)
+        val dest = e.clickedInventory ?: return
+
+        if (dest.type != InventoryType.CHEST) return
     }
 
     private fun updateStats(stack: ItemStack, player: Player) {
@@ -97,7 +123,13 @@ class Itemhunt : JavaPlugin(), Listener {
 
         CommandItemhunt.main.register()
 
-        server.worlds.forEach { it.setGameRule(GameRule.FALL_DAMAGE, false) }
-        server.worlds.forEach { it.setGameRule(GameRule.KEEP_INVENTORY, false) }
+        saveDefaultConfig()
+        DataUtil.import()
+
+        server.worlds.forEach {
+            it.setGameRule(GameRule.FALL_DAMAGE, false)
+            it.setGameRule(GameRule.KEEP_INVENTORY, false)
+            it.setGameRule(GameRule.DROWNING_DAMAGE, false)
+        }
     }
 }
