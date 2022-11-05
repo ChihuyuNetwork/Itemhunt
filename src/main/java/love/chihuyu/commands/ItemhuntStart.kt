@@ -6,6 +6,7 @@ import dev.jorel.commandapi.arguments.ListArgumentBuilder
 import dev.jorel.commandapi.arguments.LongArgument
 import dev.jorel.commandapi.executors.CommandExecutor
 import love.chihuyu.Itemhunt
+import love.chihuyu.Itemhunt.Companion.POINT_HOPPER
 import love.chihuyu.Itemhunt.Companion.plugin
 import love.chihuyu.data.PhaseData
 import love.chihuyu.data.PlayerData
@@ -43,7 +44,7 @@ object ItemhuntStart {
                 val gameFinishEpoch = startedEpoch + (secondsPerPhase * phases)
 
                 (args[3] as List<TargetCategory>).forEach { category ->
-                    TargetItem.targetData[category]?.forEach { (material, score) ->
+                    TargetItem.data[category]?.forEach { (material, score) ->
                         materials[material] = score
                     }
                 }
@@ -63,7 +64,8 @@ object ItemhuntStart {
                         BarStyle.SEGMENTED_6
                     )
 
-                    bossBar.progress = (1.0 / secondsPerPhase) * (phaseEndEpoch - nowEpoch())
+                    // Avoidance exception "Progress must be between 0.0 and 1.0 (-0.05)"
+                    bossBar.progress = (1.0 / secondsPerPhase) * (phaseEndEpoch - nowEpoch()).unaryPlus()
                     bossBar.isVisible = true
 
                     plugin.server.onlinePlayers.forEach {
@@ -98,12 +100,13 @@ object ItemhuntStart {
         )
 
     private fun onGameStart() {
-        Itemhunt.plugin.server.onlinePlayers.forEach {
+        plugin.server.onlinePlayers.forEach {
             PlayerData.data[it.uniqueId] = mutableMapOf()
             it.gameMode = GameMode.SURVIVAL
+            it.inventory.addItem(POINT_HOPPER)
         }
 
-        Itemhunt.plugin.server.broadcastMessage(
+        plugin.server.broadcastMessage(
             """
             ${ChatColor.GOLD}${ChatColor.STRIKETHROUGH}${ChatColor.BOLD}${" ".repeat(42)}${ChatColor.RESET}
             ${" ".repeat(1)}
@@ -148,6 +151,7 @@ object ItemhuntStart {
             player.playSound(player, Sound.ENTITY_PLAYER_LEVELUP, .5f, 1f)
         }
 
+        TargetItem.targetItem.clear()
         ScoreboardUtil.updateServerScoreboard()
     }
 
