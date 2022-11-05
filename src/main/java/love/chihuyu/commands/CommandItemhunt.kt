@@ -7,7 +7,7 @@ object CommandItemhunt {
     val main = CommandAPICommand("itemhunt")
         .withSubcommands(
             ItemhuntStart.main,
-            CommandImport.main
+            ItemhuntImport.main
         )
         .withPermission(CommandPermission.OP)
         .withAliases("ih")
