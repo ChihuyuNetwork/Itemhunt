@@ -4,7 +4,6 @@ import love.chihuyu.Itemhunt
 import love.chihuyu.data.TargetCategory
 import love.chihuyu.data.TargetItem
 import org.bukkit.Material
-import kotlin.system.measureTimeMillis
 
 object DataUtil {
 

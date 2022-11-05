@@ -122,7 +122,8 @@ object ItemhuntStart {
         val sortedPlayerData = PlayerData.data.toList().sortedByDescending { it.second.map { it.value }.sum() }
 
         plugin.server.onlinePlayers.forEach { player ->
-            player.sendMessage("""
+            player.sendMessage(
+                """
             ${ChatColor.GOLD}${ChatColor.STRIKETHROUGH}${ChatColor.BOLD}${" ".repeat(42)}${ChatColor.RESET}
             ${" ".repeat(1)}
             ゲーム終了！
@@ -130,12 +131,20 @@ object ItemhuntStart {
             あなたは${sortedPlayerData.map { it.first }.indexOf(player.uniqueId).inc()}位でした
             ${" ".repeat(2)}
             ${ChatColor.GOLD}${ChatColor.STRIKETHROUGH}${ChatColor.BOLD}${" ".repeat(42)}${ChatColor.RESET}
-            """.trimIndent())
-            player.spigot().sendMessage(TextComponent("${ChatColor.UNDERLINE}ここにカーソルを合わせるとランキングが表示されます").apply {
-                this.hoverEvent = HoverEvent(HoverEvent.Action.SHOW_TEXT, Text(sortedPlayerData.joinToString ("\n") {
-                    "#${sortedPlayerData.indexOf(it).inc()} ${Bukkit.getOfflinePlayer(it.first).name} ${it.second.values.sum()}pt"
-                }))
-            })
+                """.trimIndent()
+            )
+            player.spigot().sendMessage(
+                TextComponent("${ChatColor.UNDERLINE}ここにカーソルを合わせるとランキングが表示されます").apply {
+                    this.hoverEvent = HoverEvent(
+                        HoverEvent.Action.SHOW_TEXT,
+                        Text(
+                            sortedPlayerData.joinToString("\n") {
+                                "#${sortedPlayerData.indexOf(it).inc()} ${Bukkit.getOfflinePlayer(it.first).name} ${it.second.values.sum()}pt"
+                            }
+                        )
+                    )
+                }
+            )
             player.playSound(player, Sound.ENTITY_PLAYER_LEVELUP, .5f, 1f)
         }
 
@@ -144,8 +153,8 @@ object ItemhuntStart {
 
     private fun formatTime(timeSeconds: Long): String {
         return "${"%02d".format(timeSeconds.floorDiv(3600))}:" +
-                "${"%02d".format(timeSeconds.floorDiv(60))}:" +
-                "%02d".format(timeSeconds % 60)
+            "${"%02d".format(timeSeconds.floorDiv(60))}:" +
+            "%02d".format(timeSeconds % 60)
     }
 
     private fun nowEpoch(): Long {
