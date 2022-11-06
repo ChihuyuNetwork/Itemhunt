@@ -69,7 +69,7 @@ object ItemhuntStart {
                     bossBar.isVisible = true
 
                     plugin.server.onlinePlayers.forEach {
-                        if (phaseEndEpoch - nowEpoch() in 1..4) {
+                        if (phaseEndEpoch - nowEpoch() in 1..5) {
                             it.playSound(it, Sound.UI_BUTTON_CLICK, 1f, 1f)
                         }
                         bossBar.addPlayer(it)
@@ -136,6 +136,7 @@ object ItemhuntStart {
             ${ChatColor.GOLD}${ChatColor.STRIKETHROUGH}${ChatColor.BOLD}${" ".repeat(42)}${ChatColor.RESET}
                 """.trimIndent()
             )
+
             player.spigot().sendMessage(
                 TextComponent("${ChatColor.UNDERLINE}ここにカーソルを合わせるとランキングが表示されます").apply {
                     this.hoverEvent = HoverEvent(
@@ -148,7 +149,9 @@ object ItemhuntStart {
                     )
                 }
             )
+
             player.playSound(player, Sound.ENTITY_PLAYER_LEVELUP, .5f, 1f)
+            player.gameMode = GameMode.ADVENTURE
         }
 
         TargetItem.targetItem.clear()

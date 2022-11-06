@@ -7,5 +7,5 @@ object TargetItem {
     var targetItem: MutableSet<Material?> = mutableSetOf()
 
     // TODO:setting score per material
-    val targetData = hashMapOf<TargetCategory, MutableMap<Material, Int>>()
+    val data = hashMapOf<TargetCategory, MutableMap<Material, Int>>()
 }
