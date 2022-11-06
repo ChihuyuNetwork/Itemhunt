@@ -4,7 +4,6 @@ import love.chihuyu.Itemhunt
 import love.chihuyu.Itemhunt.Companion.plugin
 import love.chihuyu.data.PlayerData
 import love.chihuyu.data.TargetItem
-import org.bukkit.Bukkit
 import org.bukkit.ChatColor
 import org.bukkit.craftbukkit.v1_19_R1.inventory.CraftItemStack
 import org.bukkit.craftbukkit.v1_19_R1.util.CraftChatMessage
@@ -17,13 +16,22 @@ object ScoreboardUtil {
     fun updateServerScoreboard() {
         plugin.server.onlinePlayers.forEach { player ->
             val board = plugin.server.scoreboardManager!!.newScoreboard
-            val obj = board.registerNewObjective(
+            val objTarget = board.registerNewObjective(
                 "main",
                 "",
                 "   ${ChatColor.GOLD}${ChatColor.UNDERLINE}${ChatColor.BOLD}Item Hunt${ChatColor.RESET}   "
-            )
-            obj.displaySlot = DisplaySlot.SIDEBAR
-            obj.renderType = RenderType.INTEGER
+            ).apply {
+                this.displaySlot = DisplaySlot.SIDEBAR
+                this.renderType = RenderType.INTEGER
+            }
+
+            val objRanking = board.registerNewObjective(
+                "ranking",
+                ",",
+                ""
+            ).apply {
+                this.displaySlot = DisplaySlot.PLAYER_LIST
+            }
 
             if (!Itemhunt.started) {
                 val scores = mutableListOf(
@@ -33,7 +41,7 @@ object ScoreboardUtil {
                 )
 
                 scores.forEachIndexed { index, s ->
-                    obj.getScore(s).score = scores.lastIndex - index
+                    objTarget.getScore(s).score = scores.lastIndex - index
                 }
 
                 player.scoreboard = board
@@ -43,9 +51,7 @@ object ScoreboardUtil {
             val scores = mutableListOf(
                 " ",
                 "目標リスト",
-                "  ",
-                "   ",
-                "${ChatColor.GRAY}${ChatColor.STRIKETHROUGH}${ChatColor.BOLD}${" ".repeat(32)}"
+                "  "
             )
 
             TargetItem.targetItem.forEachIndexed { index, material ->
@@ -54,7 +60,11 @@ object ScoreboardUtil {
             }
 
             scores.forEachIndexed { index, s ->
-                obj.getScore(s).score = scores.lastIndex - index
+                objTarget.getScore(s).score = scores.lastIndex - index
+            }
+
+            plugin.server.onlinePlayers.forEach { p ->
+                objRanking.getScore(p).score = PlayerData.data[p.uniqueId]?.values?.sum() ?: 0
             }
 
             player.scoreboard = board

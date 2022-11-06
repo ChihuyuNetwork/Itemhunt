@@ -13,6 +13,7 @@ import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
 import org.bukkit.event.block.Action
+import org.bukkit.event.block.BlockBreakEvent
 import org.bukkit.event.entity.EntityDropItemEvent
 import org.bukkit.event.entity.FoodLevelChangeEvent
 import org.bukkit.event.inventory.InventoryClickEvent
@@ -32,8 +33,9 @@ class Itemhunt : JavaPlugin(), Listener {
         var started: Boolean = false
         val POINT_HOPPER = ItemStack(Material.NETHER_STAR).apply {
             val meta = this.itemMeta ?: return@apply
-            meta.setDisplayName("ポイントホッパー")
+            meta.setDisplayName("ポイント・ホッパー")
             meta.addItemFlags(ItemFlag.HIDE_ATTRIBUTES, ItemFlag.HIDE_ENCHANTS)
+            meta.setCustomModelData(1)
 
             this.itemMeta = meta
             this.addUnsafeEnchantment(Enchantment.MENDING, 0)
@@ -67,14 +69,9 @@ class Itemhunt : JavaPlugin(), Listener {
         PlayerData.data.putIfAbsent(e.player.uniqueId, mutableMapOf())
         ScoreboardUtil.updateServerScoreboard()
 
-        if (started) {
-            player.gameMode = GameMode.SURVIVAL
-            player.isInvulnerable = false
-            if (POINT_HOPPER !in player.inventory.contents) player.inventory.addItem(POINT_HOPPER)
-        } else {
-            player.gameMode = GameMode.ADVENTURE
-            player.isInvulnerable = true
-        }
+        player.isInvulnerable = true
+        if (!player.inventory.any { it.itemMeta?.customModelData == 1 }) player.inventory.addItem(POINT_HOPPER)
+        player.gameMode = if (started) GameMode.SURVIVAL else GameMode.ADVENTURE
     }
 
     @EventHandler
@@ -100,7 +97,7 @@ class Itemhunt : JavaPlugin(), Listener {
     fun onDrop(e: EntityDropItemEvent) {
         val item = e.itemDrop.itemStack
 
-        if (item == POINT_HOPPER && e.entity is Player) e.isCancelled = true
+        if (item.itemMeta?.customModelData == 1) e.isCancelled = true
     }
 
     @EventHandler
@@ -124,9 +121,9 @@ class Itemhunt : JavaPlugin(), Listener {
                 it.amount = 0
                 player.playSound(player, Sound.ENTITY_EXPERIENCE_ORB_PICKUP, .8f, 1f)
             }
-        }
 
-        ScoreboardUtil.updateServerScoreboard()
+            ScoreboardUtil.updateServerScoreboard()
+        }
     }
 
     @EventHandler
@@ -134,7 +131,7 @@ class Itemhunt : JavaPlugin(), Listener {
         val player = e.player as Player
         val inv = e.inventory
 
-        if (inv.size == 9 && !inv.isEmpty)
+        if (inv.size != 9 || inv.isEmpty) return
 
         player.playSound(player, Sound.ENTITY_ITEM_PICKUP, 1f, 1f)
 
