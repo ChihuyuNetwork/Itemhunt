@@ -96,8 +96,9 @@ class Itemhunt : JavaPlugin(), Listener {
     @EventHandler
     fun onDrop(e: EntityDropItemEvent) {
         val item = e.itemDrop.itemStack
+        val player = e.entity as? Player ?: return
 
-        if (item.itemMeta?.customModelData == 1) e.isCancelled = true
+        if (item.itemMeta?.customModelData == 1) player.inventory.addItem(item)
     }
 
     @EventHandler
