@@ -122,7 +122,7 @@ object ItemhuntStart {
         PhaseData.elapsedPhases = 0
         Itemhunt.started = false
 
-        val sortedPlayerData = PlayerData.data.toList().sortedByDescending { it.second.map { it.value }.sum() }
+        val sortedPlayerData = PlayerData.data.toList().sortedByDescending { it.second.map { scores -> scores.value }.sum() }.filterNot { it.second.values.sum() == 0 }
 
         plugin.server.onlinePlayers.forEach { player ->
             player.sendMessage(
