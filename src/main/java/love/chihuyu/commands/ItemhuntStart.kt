@@ -131,6 +131,7 @@ object ItemhuntStart {
                 .filterNot { it.second.values.sum() == 0 }
 
         plugin.server.onlinePlayers.forEach { player ->
+            val yourRank = sortedPlayerData.map { it.first }.indexOf(player.uniqueId).inc()
             player.spigot().sendMessage(
                 TextComponent(
                     """
@@ -139,7 +140,7 @@ object ItemhuntStart {
                         """
                     アイテムハント終了！
                     勝者は${ChatColor.BOLD}${Bukkit.getOfflinePlayer(sortedPlayerData[0].first).name}${ChatColor.RESET}です
-                    あなたは${sortedPlayerData.map { it.first }.indexOf(player.uniqueId).inc()}位でした
+                    あなたは${if (yourRank == 0) "圏外" else "${yourRank}位"}でした
                     """
                     } else {
                         """
