@@ -13,11 +13,11 @@ import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
 import org.bukkit.event.block.Action
-import org.bukkit.event.entity.EntityDropItemEvent
 import org.bukkit.event.entity.FoodLevelChangeEvent
 import org.bukkit.event.inventory.InventoryClickEvent
 import org.bukkit.event.inventory.InventoryCloseEvent
 import org.bukkit.event.inventory.InventoryType
+import org.bukkit.event.player.PlayerDropItemEvent
 import org.bukkit.event.player.PlayerInteractEvent
 import org.bukkit.event.player.PlayerJoinEvent
 import org.bukkit.inventory.InventoryHolder
@@ -93,7 +93,7 @@ class Itemhunt : JavaPlugin(), Listener {
     }
 
     @EventHandler
-    fun onDrop(e: EntityDropItemEvent) {
+    fun onDrop(e: PlayerDropItemEvent) {
         val item = e.itemDrop.itemStack
 
         if (item.itemMeta?.hasCustomModelData() == true) e.isCancelled = true
