@@ -5,7 +5,7 @@ import love.chihuyu.data.TargetCategory
 import love.chihuyu.data.TargetItem
 import org.bukkit.Material
 
-object DataUtil {
+object TargetDataUtil {
 
     fun import() {
         val section = Itemhunt.plugin.config.getConfigurationSection("targets") ?: return

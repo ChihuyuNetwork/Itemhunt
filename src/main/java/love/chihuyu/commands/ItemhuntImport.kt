@@ -3,7 +3,7 @@ package love.chihuyu.commands
 import dev.jorel.commandapi.CommandAPICommand
 import dev.jorel.commandapi.CommandPermission
 import dev.jorel.commandapi.executors.CommandExecutor
-import love.chihuyu.utils.DataUtil
+import love.chihuyu.utils.TargetDataUtil
 import kotlin.system.measureTimeMillis
 
 object ItemhuntImport {
@@ -12,7 +12,7 @@ object ItemhuntImport {
         .withPermission(CommandPermission.OP)
         .executes(
             CommandExecutor { sender, args ->
-                sender.sendMessage("Import target item datas(${measureTimeMillis { DataUtil.import() }}ms).")
+                sender.sendMessage("Import target item datas(${measureTimeMillis { TargetDataUtil.import() }}ms).")
             }
         )
 }

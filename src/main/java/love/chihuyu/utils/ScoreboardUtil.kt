@@ -53,10 +53,11 @@ object ScoreboardUtil {
                 "目標リスト",
                 "  "
             )
-
             TargetItem.targetItem.forEachIndexed { index, material ->
                 val craftItemStack = CraftItemStack.asNMSCopy(ItemStack(material!!))
-                scores.add(index + 2, "・${CraftChatMessage.fromComponent(craftItemStack.x())} ${ChatColor.GRAY}(${TargetItem.data.map { it.value }.first { it.containsKey(material) }[material]}pt)")
+                val translated = CraftChatMessage.fromComponent(craftItemStack.x())
+                val point = TargetDataUtil.getPoint(material)
+                scores.add(index + 2, "・$translated ${ChatColor.GRAY}(${point}pt)${ChatColor.RESET}")
             }
 
             scores.forEachIndexed { index, s ->

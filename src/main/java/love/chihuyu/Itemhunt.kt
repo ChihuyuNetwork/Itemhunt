@@ -4,7 +4,7 @@ import love.chihuyu.commands.CommandItemhunt
 import love.chihuyu.data.PlayerData
 import love.chihuyu.data.TargetItem
 import love.chihuyu.utils.BossbarUtil
-import love.chihuyu.utils.DataUtil
+import love.chihuyu.utils.TargetDataUtil
 import love.chihuyu.utils.ScoreboardUtil
 import love.chihuyu.utils.runTaskLater
 import org.bukkit.*
@@ -13,7 +13,6 @@ import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
 import org.bukkit.event.block.Action
-import org.bukkit.event.block.BlockBreakEvent
 import org.bukkit.event.entity.EntityDropItemEvent
 import org.bukkit.event.entity.FoodLevelChangeEvent
 import org.bukkit.event.inventory.InventoryClickEvent
@@ -52,7 +51,7 @@ class Itemhunt : JavaPlugin(), Listener {
         CommandItemhunt.main.register()
 
         saveDefaultConfig()
-        DataUtil.import()
+        TargetDataUtil.import()
 
         server.worlds.forEach {
             it.setGameRule(GameRule.FALL_DAMAGE, false)
@@ -115,10 +114,10 @@ class Itemhunt : JavaPlugin(), Listener {
                 PlayerData.data[player.uniqueId]?.set(
                     it.type,
                     (PlayerData.data[player.uniqueId]?.get(it.type) ?: 0) +
-                            (DataUtil.getPoint(it.type) ?: 0) * it.amount
+                        (TargetDataUtil.getPoint(it.type) ?: 0) * it.amount
                 )
 
-                //remove item
+                // remove item
                 it.amount = 0
                 player.playSound(player, Sound.ENTITY_EXPERIENCE_ORB_PICKUP, .8f, 1f)
             }
