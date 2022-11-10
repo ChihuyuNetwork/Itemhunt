@@ -107,7 +107,7 @@ object ItemhuntStart {
         plugin.server.onlinePlayers.forEach {
             PlayerData.data[it.uniqueId] = mutableMapOf()
             it.gameMode = GameMode.SURVIVAL
-            if (it.inventory.none { item -> item.itemMeta?.customModelData == 1 }) it.inventory.addItem(POINT_HOPPER)
+            if (it.inventory.none { item -> item.itemMeta?.hasCustomModelData() == true }) it.inventory.addItem(POINT_HOPPER)
         }
 
         plugin.server.broadcastMessage(

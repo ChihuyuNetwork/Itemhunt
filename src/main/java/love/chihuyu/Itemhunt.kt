@@ -4,8 +4,8 @@ import love.chihuyu.commands.CommandItemhunt
 import love.chihuyu.data.PlayerData
 import love.chihuyu.data.TargetItem
 import love.chihuyu.utils.BossbarUtil
-import love.chihuyu.utils.TargetDataUtil
 import love.chihuyu.utils.ScoreboardUtil
+import love.chihuyu.utils.TargetDataUtil
 import love.chihuyu.utils.runTaskLater
 import org.bukkit.*
 import org.bukkit.enchantments.Enchantment
@@ -69,7 +69,7 @@ class Itemhunt : JavaPlugin(), Listener {
         ScoreboardUtil.updateServerScoreboard()
 
         player.isInvulnerable = true
-        if (!player.inventory.any { it.itemMeta?.customModelData == 1 }) player.inventory.addItem(POINT_HOPPER)
+        if (player.inventory.none { item -> item.itemMeta?.hasCustomModelData() == true }) player.inventory.addItem(POINT_HOPPER)
         player.gameMode = if (started) GameMode.SURVIVAL else GameMode.ADVENTURE
     }
 
@@ -95,9 +95,8 @@ class Itemhunt : JavaPlugin(), Listener {
     @EventHandler
     fun onDrop(e: EntityDropItemEvent) {
         val item = e.itemDrop.itemStack
-        val player = e.entity as? Player ?: return
 
-        if (item.itemMeta?.customModelData == 1) player.inventory.addItem(item)
+        if (item.itemMeta?.hasCustomModelData() == true) e.isCancelled = true
     }
 
     @EventHandler
