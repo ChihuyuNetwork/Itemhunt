@@ -114,7 +114,7 @@ object ItemhuntStart {
             """
             ${ChatColor.GOLD}${ChatColor.STRIKETHROUGH}${ChatColor.BOLD}${" ".repeat(42)}${ChatColor.RESET}
             ${" ".repeat(1)}
-            ゲーム開始！
+            アイテムハント開始！
             ${" ".repeat(2)}
             ${ChatColor.GOLD}${ChatColor.STRIKETHROUGH}${ChatColor.BOLD}${" ".repeat(42)}${ChatColor.RESET}
             """.trimIndent()
@@ -137,13 +137,13 @@ object ItemhuntStart {
                     ${ChatColor.GOLD}${ChatColor.STRIKETHROUGH}${ChatColor.BOLD}${" ".repeat(42)}${ChatColor.RESET}
                     ${if (sortedPlayerData.isNotEmpty()) {
                         """
-                    ゲーム終了！
+                    アイテムハント終了！
                     勝者は${ChatColor.BOLD}${Bukkit.getOfflinePlayer(sortedPlayerData[0].first).name}${ChatColor.RESET}です
                     あなたは${sortedPlayerData.map { it.first }.indexOf(player.uniqueId).inc()}位でした
                     """
                     } else {
                         """
-                    ゲーム終了！
+                    アイテムハント終了！
                     勝者はいませんでした！
                     """
                     }}
