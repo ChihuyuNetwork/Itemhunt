@@ -69,7 +69,7 @@ class Itemhunt : JavaPlugin(), Listener {
         ScoreboardUtil.updateServerScoreboard()
 
         player.isInvulnerable = true
-        if (player.inventory.none { item -> item.itemMeta?.hasCustomModelData() == true }) player.inventory.addItem(POINT_HOPPER)
+        if (player.inventory.filterNotNull().none { item -> item.itemMeta?.hasCustomModelData() == true }) player.inventory.addItem(POINT_HOPPER)
         player.gameMode = if (started) GameMode.SURVIVAL else GameMode.ADVENTURE
     }
 
