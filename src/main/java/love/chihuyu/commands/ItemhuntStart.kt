@@ -135,7 +135,6 @@ object ItemhuntStart {
                 TextComponent(
                     """
                     ${ChatColor.GOLD}${ChatColor.STRIKETHROUGH}${ChatColor.BOLD}${" ".repeat(42)}${ChatColor.RESET}
-                    ${" ".repeat(1)}
                     ${if (sortedPlayerData.isNotEmpty()) {
                         """
                     ゲーム終了！
@@ -148,7 +147,6 @@ object ItemhuntStart {
                     勝者はいませんでした！
                     """
                     }}
-                    ${" ".repeat(1)}
                     ${ChatColor.GOLD}${ChatColor.STRIKETHROUGH}${ChatColor.BOLD}${" ".repeat(42)}${ChatColor.RESET}
                     """.trimIndent()
                 ).apply endMessage@{
@@ -156,13 +154,7 @@ object ItemhuntStart {
                         TextComponent("${ChatColor.UNDERLINE}ここにカーソルを合わせるとランキングが表示されます").apply rankingComponent@{
                             this@rankingComponent.hoverEvent = HoverEvent(
                                 HoverEvent.Action.SHOW_TEXT,
-                                Text(
-                                    sortedPlayerData.joinToString("\n") {
-                                        "#${
-                                        sortedPlayerData.indexOf(it).inc()
-                                        } ${Bukkit.getOfflinePlayer(it.first).name} ${it.second.values.sum()}pt"
-                                    }
-                                )
+                                Text(sortedPlayerData.joinToString("\n") { "#${sortedPlayerData.indexOf(it).inc()} ${Bukkit.getOfflinePlayer(it.first).name} ${it.second.values.sum()}pt" })
                             )
                         }
                     )
