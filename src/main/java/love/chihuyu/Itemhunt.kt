@@ -34,6 +34,7 @@ class Itemhunt : JavaPlugin(), Listener {
         lateinit var plugin: JavaPlugin
         lateinit var translator: Translator
         var started: Boolean = false
+        val prefix = "${ChatColor.GOLD}[IH]${ChatColor.RESET}"
         val POINT_HOPPER = ItemStack(Material.NETHER_STAR).apply {
             val meta = this.itemMeta ?: return@apply
             meta.setDisplayName("ポイント・ホッパー")

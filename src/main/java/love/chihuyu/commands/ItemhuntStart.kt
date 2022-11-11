@@ -1,13 +1,12 @@
 package love.chihuyu.commands
 
 import dev.jorel.commandapi.CommandAPICommand
-import dev.jorel.commandapi.arguments.IntegerArgument
-import dev.jorel.commandapi.arguments.ListArgumentBuilder
-import dev.jorel.commandapi.arguments.LongArgument
 import dev.jorel.commandapi.executors.CommandExecutor
 import love.chihuyu.Itemhunt
 import love.chihuyu.Itemhunt.Companion.POINT_HOPPER
 import love.chihuyu.Itemhunt.Companion.plugin
+import love.chihuyu.Itemhunt.Companion.prefix
+import love.chihuyu.config.ConfigKeys
 import love.chihuyu.data.PhaseData
 import love.chihuyu.data.PlayerData
 import love.chihuyu.data.TargetCategory
@@ -26,84 +25,100 @@ import java.time.Instant
 
 object ItemhuntStart {
 
-    val main = CommandAPICommand("start").withArguments(
-        IntegerArgument("phases"),
-        LongArgument("secondsPerPhase"),
-        IntegerArgument("targets"),
-        ListArgumentBuilder<TargetCategory>("materials").allowDuplicates(false)
-            .withList(TargetCategory.values().toList()).withStringMapper().build()
-    ).executes(
-        CommandExecutor { sender, args ->
-            val phases = args[0] as Int
-            val secondsPerPhase = args[1] as Long
-            val materials = mutableMapOf<Material, Int>()
-            val targets = args[2] as Int
-            val startedEpoch = nowEpoch()
-            val gameFinishEpoch = startedEpoch + (secondsPerPhase * phases)
+    val main = CommandAPICommand("start")
+        .executes(
+            CommandExecutor { sender, args ->
+                val phases = plugin.config.getInt(ConfigKeys.PHASES.key)
+                val secondsPerPhase = plugin.config.getLong(ConfigKeys.PHASE_TIME.key)
+                val materials = plugin.config.getList(ConfigKeys.MATERIALS.key)
+                val targets = plugin.config.getInt(ConfigKeys.TARGETS.key)
+                val startedEpoch = nowEpoch()
+                val gameFinishEpoch = startedEpoch + (secondsPerPhase * phases)
 
-            (args[3] as List<TargetCategory>).forEach { category ->
-                TargetItem.data[category]?.forEach { (material, score) ->
-                    materials[material] = score
+                fun error(key: String) {
+                    sender.sendMessage("$prefix ${key}が未設定です")
+                    sender.sendMessage("$prefix /ih $key で設定を行ってください")
                 }
-            }
 
-            Itemhunt.started = true
+                if (materials == null) {
+                    error("materials")
+                    return@CommandExecutor
+                }
 
-            onGameStart()
+                if (targets == 0) {
+                    error("targets")
+                    return@CommandExecutor
+                }
 
-            val taskUpdateBossbar = plugin.runTaskTimer(0, 20) {
-                val phaseEndEpoch = startedEpoch + (PhaseData.elapsedPhases * secondsPerPhase)
-                BossbarUtil.removeBossbar("bruh")
+                if (secondsPerPhase == 0L) {
+                    error("phase_time")
+                    return@CommandExecutor
+                }
 
-                val bossBar = Bukkit.createBossBar(
-                    NamespacedKey.fromString("bruh")!!,
-                    "フェーズ ${PhaseData.elapsedPhases}/$phases - ${formatTime(phaseEndEpoch - nowEpoch())}",
-                    BarColor.RED,
-                    BarStyle.SEGMENTED_6
-                )
+                if (phases == 0) {
+                    error("phases")
+                    return@CommandExecutor
+                }
 
-                // Avoidance exception "Progress must be between 0.0 and 1.0 (-0.05)"
-                bossBar.progress = (1.0 / secondsPerPhase) * (phaseEndEpoch - nowEpoch()).unaryPlus()
-                bossBar.isVisible = true
+                Itemhunt.started = true
 
-                plugin.server.onlinePlayers.forEach {
-                    if (phaseEndEpoch - nowEpoch() in 1..5) {
-                        it.playSound(it, Sound.UI_BUTTON_CLICK, 1f, 1f)
+                onGameStart()
+
+                val taskUpdateBossbar = plugin.runTaskTimer(0, 20) {
+                    val phaseEndEpoch = startedEpoch + (PhaseData.elapsedPhases * secondsPerPhase)
+                    BossbarUtil.removeBossbar("bruh")
+
+                    val bossBar = Bukkit.createBossBar(
+                        NamespacedKey.fromString("bruh")!!,
+                        "フェーズ ${PhaseData.elapsedPhases}/$phases - ${formatTime(phaseEndEpoch - nowEpoch())}",
+                        BarColor.RED,
+                        BarStyle.SEGMENTED_6
+                    )
+
+                    // Avoidance exception "Progress must be between 0.0 and 1.0 (-0.05)"
+                    bossBar.progress = (1.0 / secondsPerPhase) * (phaseEndEpoch - nowEpoch()).unaryPlus()
+                    bossBar.isVisible = true
+
+                    plugin.server.onlinePlayers.forEach {
+                        if (phaseEndEpoch - nowEpoch() in 1..5) {
+                            it.playSound(it, Sound.UI_BUTTON_CLICK, 1f, 1f)
+                        }
+                        bossBar.addPlayer(it)
                     }
-                    bossBar.addPlayer(it)
+                }
+
+                val taskUpdateTargetItem = plugin.runTaskTimer(0, secondsPerPhase * 20) {
+                    PhaseData.elapsedPhases++
+
+                    TargetItem.targetItem.clear()
+                    repeat(targets) {
+                        TargetItem.targetItem += TargetItem.data.filterKeys { it in materials.map { TargetCategory.valueOf(it.toString()) } }.values.flatMap { it.keys }.random()
+                    }
+                    ScoreboardUtil.updateServerScoreboard()
+
+                    plugin.server.onlinePlayers.forEach { player ->
+                        player.sendMessage("フェーズ${PhaseData.elapsedPhases}開始！")
+
+                        player.playSound(player, Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1f, 1f)
+                    }
+                }
+
+                val taskGameEnd = plugin.runTaskLater((gameFinishEpoch - startedEpoch) * 20) {
+                    taskUpdateBossbar.cancel()
+                    taskUpdateTargetItem.cancel()
+
+                    onGameEnd()
                 }
             }
-
-            val taskUpdateTargetItem = plugin.runTaskTimer(0, secondsPerPhase * 20) {
-                PhaseData.elapsedPhases++
-
-                TargetItem.targetItem.clear()
-                repeat(targets) {
-                    TargetItem.targetItem += materials.keys.random()
-                }
-                ScoreboardUtil.updateServerScoreboard()
-
-                plugin.server.onlinePlayers.forEach { player ->
-                    player.sendMessage("${ChatColor.GOLD}[アイテムハント]${ChatColor.RESET} フェーズ${PhaseData.elapsedPhases}開始！")
-
-                    player.playSound(player, Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1f, 1f)
-                }
-            }
-
-            val taskGameEnd = plugin.runTaskLater((gameFinishEpoch - startedEpoch) * 20) {
-                taskUpdateBossbar.cancel()
-                taskUpdateTargetItem.cancel()
-
-                onGameEnd()
-            }
-        }
-    )
+        )
 
     private fun onGameStart() {
         plugin.server.onlinePlayers.forEach {
             PlayerData.data[it.uniqueId] = mutableMapOf()
             it.gameMode = GameMode.SURVIVAL
-            if (it.inventory.filterNotNull().none { item -> item.itemMeta?.hasCustomModelData() == true }) it.inventory.addItem(POINT_HOPPER)
+            if (it.inventory.filterNotNull()
+                    .none { item -> item.itemMeta?.hasCustomModelData() == true }
+            ) it.inventory.addItem(POINT_HOPPER)
         }
 
         plugin.server.broadcastMessage(
@@ -132,18 +147,20 @@ object ItemhuntStart {
                 TextComponent(
                     """
                     ${ChatColor.GOLD}${ChatColor.STRIKETHROUGH}${ChatColor.BOLD}${" ".repeat(42)}${ChatColor.RESET}
-                    ${if (sortedPlayerData.isNotEmpty()) {
-                        """
+                    ${
+                        if (sortedPlayerData.isNotEmpty()) {
+                            """
                     アイテムハント終了！
                     勝者は${ChatColor.BOLD}${Bukkit.getOfflinePlayer(sortedPlayerData[0].first).name}${ChatColor.RESET}です
                     あなたは${if (yourRank == 0) "圏外" else "${yourRank}位"}でした
                     """
-                    } else {
-                        """
+                        } else {
+                            """
                     アイテムハント終了！
                     勝者はいませんでした！
                     """
-                    }}
+                        }
+                    }
                     ${ChatColor.GOLD}${ChatColor.STRIKETHROUGH}${ChatColor.BOLD}${" ".repeat(42)}${ChatColor.RESET}
                     """.trimIndent()
                 ).apply endMessage@{
@@ -151,7 +168,11 @@ object ItemhuntStart {
                         TextComponent("${ChatColor.UNDERLINE}ここにカーソルを合わせるとランキングが表示されます").apply rankingComponent@{
                             this@rankingComponent.hoverEvent = HoverEvent(
                                 HoverEvent.Action.SHOW_TEXT,
-                                Text(sortedPlayerData.joinToString("\n") { "#${sortedPlayerData.indexOf(it).inc()} ${Bukkit.getOfflinePlayer(it.first).name} ${it.second.values.sum()}pt" })
+                                Text(sortedPlayerData.joinToString("\n") {
+                                    "#${
+                                        sortedPlayerData.indexOf(it).inc()
+                                    } ${Bukkit.getOfflinePlayer(it.first).name} ${it.second.values.sum()}pt"
+                                })
                             )
                         }
                     )
