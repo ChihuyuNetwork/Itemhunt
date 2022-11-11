@@ -1,5 +1,7 @@
 package love.chihuyu
 
+import com.convallyria.languagy.api.language.Language
+import com.convallyria.languagy.api.language.Translator
 import love.chihuyu.commands.CommandItemhunt
 import love.chihuyu.data.PlayerData
 import love.chihuyu.data.TargetItem
@@ -24,11 +26,13 @@ import org.bukkit.inventory.InventoryHolder
 import org.bukkit.inventory.ItemFlag
 import org.bukkit.inventory.ItemStack
 import org.bukkit.plugin.java.JavaPlugin
+import java.io.File
 
 class Itemhunt : JavaPlugin(), Listener {
 
     companion object {
         lateinit var plugin: JavaPlugin
+        lateinit var translator: Translator
         var started: Boolean = false
         val POINT_HOPPER = ItemStack(Material.NETHER_STAR).apply {
             val meta = this.itemMeta ?: return@apply
@@ -46,6 +50,12 @@ class Itemhunt : JavaPlugin(), Listener {
     }
 
     override fun onEnable() {
+        val lang = File("${plugin.dataFolder}/lang/")
+        lang.mkdirs()
+
+        plugin.saveResource("lang/ja_jp.yml", false)
+
+        translator = Translator.of(plugin, Language.JAPANESE).debug(true)
         server.pluginManager.registerEvents(this, this)
 
         CommandItemhunt.main.register()
@@ -58,6 +68,10 @@ class Itemhunt : JavaPlugin(), Listener {
             it.setGameRule(GameRule.KEEP_INVENTORY, false)
             it.setGameRule(GameRule.DROWNING_DAMAGE, false)
         }
+    }
+
+    override fun onDisable() {
+        translator.close()
     }
 
     @EventHandler

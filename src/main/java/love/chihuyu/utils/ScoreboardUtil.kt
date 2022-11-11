@@ -1,12 +1,13 @@
 package love.chihuyu.utils
 
+import com.convallyria.languagy.api.language.key.TranslationKey
 import love.chihuyu.Itemhunt
 import love.chihuyu.Itemhunt.Companion.plugin
+import love.chihuyu.Itemhunt.Companion.translator
 import love.chihuyu.data.PlayerData
 import love.chihuyu.data.TargetItem
 import org.bukkit.ChatColor
 import org.bukkit.craftbukkit.v1_19_R1.inventory.CraftItemStack
-import org.bukkit.craftbukkit.v1_19_R1.util.CraftChatMessage
 import org.bukkit.inventory.ItemStack
 import org.bukkit.scoreboard.DisplaySlot
 import org.bukkit.scoreboard.RenderType
@@ -53,9 +54,10 @@ object ScoreboardUtil {
                 "目標リスト",
                 "  "
             )
+
             TargetItem.targetItem.forEachIndexed { index, material ->
                 val craftItemStack = CraftItemStack.asNMSCopy(ItemStack(material!!))
-                val translated = CraftChatMessage.fromComponent(craftItemStack.x())
+                val translated = translator.getTranslationFor(player, TranslationKey.of(craftItemStack.p())).colour().first()
                 val point = TargetDataUtil.getPoint(material)
                 scores.add(index + 2, "・$translated ${ChatColor.GRAY}(${point}pt)${ChatColor.RESET}")
             }

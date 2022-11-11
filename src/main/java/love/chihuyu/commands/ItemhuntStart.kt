@@ -12,8 +12,10 @@ import love.chihuyu.data.PhaseData
 import love.chihuyu.data.PlayerData
 import love.chihuyu.data.TargetCategory
 import love.chihuyu.data.TargetItem
-import love.chihuyu.utils.*
-import me.pikamug.localelib.LocaleManager
+import love.chihuyu.utils.BossbarUtil
+import love.chihuyu.utils.ScoreboardUtil
+import love.chihuyu.utils.runTaskLater
+import love.chihuyu.utils.runTaskTimer
 import net.md_5.bungee.api.chat.HoverEvent
 import net.md_5.bungee.api.chat.TextComponent
 import net.md_5.bungee.api.chat.hover.content.Text
@@ -82,13 +84,7 @@ object ItemhuntStart {
                 ScoreboardUtil.updateServerScoreboard()
 
                 plugin.server.onlinePlayers.forEach { player ->
-                    player.sendMessage("フェーズ${PhaseData.elapsedPhases}開始！ / 目標アイテム一覧")
-
-                    TargetItem.targetItem.forEachIndexed { _, material ->
-                        val localeManager = LocaleManager()
-                        val point = TargetDataUtil.getPoint(material!!)
-                        localeManager.sendMessage(player, "・<item> ${ChatColor.GRAY}(${point}pt)", material, 0, mapOf())
-                    }
+                    player.sendMessage("${ChatColor.GOLD}[アイテムハント]${ChatColor.RESET} フェーズ${PhaseData.elapsedPhases}開始！")
 
                     player.playSound(player, Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1f, 1f)
                 }
