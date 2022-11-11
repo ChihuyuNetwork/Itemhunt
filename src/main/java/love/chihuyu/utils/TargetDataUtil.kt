@@ -1,14 +1,18 @@
 package love.chihuyu.utils
 
-import love.chihuyu.Itemhunt
+import love.chihuyu.Itemhunt.Companion.plugin
 import love.chihuyu.data.TargetCategory
 import love.chihuyu.data.TargetItem
 import org.bukkit.Material
+import org.bukkit.configuration.file.YamlConfiguration
+import java.io.File
 
 object TargetDataUtil {
 
     fun import() {
-        val section = Itemhunt.plugin.config.getConfigurationSection("targets") ?: return
+        val yaml = YamlConfiguration()
+        yaml.load(File("${plugin.dataFolder}/targets.yml"))
+        val section = yaml.getConfigurationSection("targets") ?: return
         section.getKeys(false).forEach { categoryName ->
             val category = section.getConfigurationSection(categoryName) ?: return
             category.getKeys(false).forEach { materialName ->

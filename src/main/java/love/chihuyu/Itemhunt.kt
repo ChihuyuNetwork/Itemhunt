@@ -54,7 +54,8 @@ class Itemhunt : JavaPlugin(), Listener {
         val lang = File("${plugin.dataFolder}/lang/")
         lang.mkdirs()
 
-        plugin.saveResource("lang/ja_jp.yml", false)
+        saveResource("lang/ja_jp.yml", false)
+        saveResource("targets.yml", false)
 
         translator = Translator.of(plugin, Language.JAPANESE).debug(true)
         server.pluginManager.registerEvents(this, this)
