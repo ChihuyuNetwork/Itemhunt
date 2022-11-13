@@ -64,12 +64,6 @@ class Itemhunt : JavaPlugin(), Listener {
 
         saveDefaultConfig()
         TargetDataUtil.import()
-
-        server.worlds.forEach {
-            it.setGameRule(GameRule.FALL_DAMAGE, false)
-            it.setGameRule(GameRule.KEEP_INVENTORY, false)
-            it.setGameRule(GameRule.DROWNING_DAMAGE, false)
-        }
     }
 
     override fun onDisable() {

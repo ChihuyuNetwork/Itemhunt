@@ -15,62 +15,75 @@ import org.bukkit.scoreboard.RenderType
 object ScoreboardUtil {
 
     fun updateServerScoreboard() {
-        plugin.server.onlinePlayers.forEach { player ->
-            val board = plugin.server.scoreboardManager!!.newScoreboard
-            val objTarget = board.registerNewObjective(
+        val board = plugin.server.scoreboardManager!!.mainScoreboard
+        val objTarget = board.registerNewObjective(
+            "main",
+            "",
+            "   ${ChatColor.GOLD}${ChatColor.UNDERLINE}${ChatColor.BOLD}Item Hunt${ChatColor.RESET}   "
+        ).apply {
+            this.displaySlot = DisplaySlot.SIDEBAR
+            this.renderType = RenderType.INTEGER
+        }
+
+        val objRanking = board.registerNewObjective(
+            "ranking",
+            ",",
+            ""
+        ).apply {
+            this.displaySlot = DisplaySlot.PLAYER_LIST
+        }
+
+        if (!Itemhunt.started) {
+            objTarget.unregister()
+
+            val objWaiting = board.registerNewObjective(
                 "main",
                 "",
-                "   ${ChatColor.GOLD}${ChatColor.UNDERLINE}${ChatColor.BOLD}Item Hunt${ChatColor.RESET}   "
+                "   ${ChatColor.GOLD}${ChatColor.UNDERLINE}${ChatColor.BOLD}Item Hunt${ChatColor.RESET}   ",
+                RenderType.INTEGER
             ).apply {
                 this.displaySlot = DisplaySlot.SIDEBAR
-                this.renderType = RenderType.INTEGER
-            }
-
-            val objRanking = board.registerNewObjective(
-                "ranking",
-                ",",
-                ""
-            ).apply {
-                this.displaySlot = DisplaySlot.PLAYER_LIST
-            }
-
-            if (!Itemhunt.started) {
-                val scores = mutableListOf(
-                    " ",
-                    "待機中...",
-                    "  "
-                )
-
-                scores.forEachIndexed { index, s ->
-                    objTarget.getScore(s).score = scores.lastIndex - index
-                }
-
-                player.scoreboard = board
-                return
             }
 
             val scores = mutableListOf(
                 " ",
-                "目標リスト",
+                "待機中...",
                 "  "
             )
 
-            TargetItem.targetItem.forEachIndexed { index, material ->
-                val craftItemStack = CraftItemStack.asNMSCopy(ItemStack(material!!))
-                val translated = translator.getTranslationFor(player, TranslationKey.of(craftItemStack.p())).colour().first()
-                val point = TargetDataUtil.getPoint(material)
-                scores.add(index + 2, "・$translated ${ChatColor.GRAY}(${point}pt)${ChatColor.RESET}")
-            }
-
             scores.forEachIndexed { index, s ->
-                objTarget.getScore(s).score = scores.lastIndex - index
+                objWaiting.getScore(s).score = scores.lastIndex - index
             }
 
-            plugin.server.onlinePlayers.forEach { p ->
-                objRanking.getScore(p).score = PlayerData.data[p.uniqueId]?.values?.sum() ?: 0
-            }
+            objRanking.unregister()
 
-            player.scoreboard = board
+            plugin.server.onlinePlayers.forEach { player -> player.scoreboard = board }
+            return
+        }
+
+        val scores = mutableListOf(
+            " ",
+            "目標リスト",
+            "  "
+        )
+
+        TargetItem.targetItem.forEachIndexed { index, material ->
+            val craftItemStack = CraftItemStack.asNMSCopy(ItemStack(material!!))
+            val jpPlayer =
+                plugin.server.onlinePlayers.firstOrNull { it.locale == "ja_JP" } ?: plugin.server.onlinePlayers.random()
+            val translated =
+                translator.getTranslationFor(jpPlayer, TranslationKey.of(craftItemStack.p())).colour().first()
+            val point = TargetDataUtil.getPoint(material)
+            scores.add(index + 2, "・$translated ${ChatColor.GRAY}(${point}pt)${ChatColor.RESET}")
+        }
+
+        scores.forEachIndexed { index, s ->
+            objTarget.getScore(s).score = scores.lastIndex - index
+
+            plugin.server.onlinePlayers.forEach { player ->
+                objRanking.getScore(player).score = PlayerData.data[player.uniqueId]?.values?.sum() ?: 0
+                player.scoreboard = board
+            }
         }
     }
 }
