@@ -70,7 +70,7 @@ object ScoreboardUtil {
         TargetItem.targetItem.forEachIndexed { index, material ->
             val craftItemStack = CraftItemStack.asNMSCopy(ItemStack(material!!))
             val jpPlayer =
-                plugin.server.onlinePlayers.firstOrNull { it.locale == "ja_JP" } ?: plugin.server.onlinePlayers.random()
+                plugin.server.onlinePlayers.firstOrNull { it.locale == "ja_jp" } ?: plugin.server.onlinePlayers.random()
             val translated =
                 translator.getTranslationFor(jpPlayer, TranslationKey.of(craftItemStack.p())).colour().first()
             val point = TargetDataUtil.getPoint(material)

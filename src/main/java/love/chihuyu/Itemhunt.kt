@@ -15,6 +15,9 @@ import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
 import org.bukkit.event.block.Action
+import org.bukkit.event.entity.EntityDamageByEntityEvent
+import org.bukkit.event.entity.EntityDamageEvent
+import org.bukkit.event.entity.EntityDamageEvent.DamageCause
 import org.bukkit.event.entity.FoodLevelChangeEvent
 import org.bukkit.event.inventory.InventoryClickEvent
 import org.bukkit.event.inventory.InventoryCloseEvent
@@ -71,6 +74,21 @@ class Itemhunt : JavaPlugin(), Listener {
     }
 
     @EventHandler
+    fun onDamage(e: EntityDamageEvent) {
+        when (e.cause) {
+            DamageCause.ENTITY_ATTACK -> {
+                val e = e as EntityDamageByEntityEvent
+                val from = e.damager
+
+                if (from !is Player || !plugin.config.getBoolean("pvp")) {
+                    e.isCancelled = false
+                }
+            }
+            else -> e.isCancelled = false
+        }
+    }
+
+    @EventHandler
     fun onJoin(e: PlayerJoinEvent) {
         val player = e.player
 
@@ -78,7 +96,6 @@ class Itemhunt : JavaPlugin(), Listener {
         PlayerData.data.putIfAbsent(e.player.uniqueId, mutableMapOf())
         ScoreboardUtil.updateServerScoreboard()
 
-        player.isInvulnerable = true
         if (player.inventory.filterNotNull().none { item -> item.itemMeta?.hasCustomModelData() == true }) player.inventory.addItem(POINT_HOPPER)
         player.gameMode = if (started) GameMode.SURVIVAL else GameMode.ADVENTURE
     }

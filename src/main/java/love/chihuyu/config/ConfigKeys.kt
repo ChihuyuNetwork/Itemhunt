@@ -5,4 +5,5 @@ enum class ConfigKeys(val key: String) {
     PHASES("phases"),
     TARGETS("targets"),
     MATERIALS("materials"),
+    PVP("pvp")
 }

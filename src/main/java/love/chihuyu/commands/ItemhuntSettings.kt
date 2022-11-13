@@ -1,6 +1,7 @@
 package love.chihuyu.commands
 
 import dev.jorel.commandapi.CommandAPICommand
+import dev.jorel.commandapi.arguments.BooleanArgument
 import dev.jorel.commandapi.arguments.IntegerArgument
 import dev.jorel.commandapi.arguments.ListArgumentBuilder
 import dev.jorel.commandapi.arguments.LongArgument
@@ -12,7 +13,7 @@ import love.chihuyu.data.TargetCategory
 
 object ItemhuntSettings {
 
-    val setMaterials: CommandAPICommand = CommandAPICommand("materials")
+    private val setMaterials: CommandAPICommand = CommandAPICommand("materials")
         .withArguments(
             ListArgumentBuilder<String>("出現する目標アイテム").allowDuplicates(false).withList(TargetCategory.values().map { it.name }).withStringMapper().build()
         )
@@ -23,7 +24,7 @@ object ItemhuntSettings {
             sender.sendMessage("$prefix 出現する目標アイテムを設定しました")
         })
 
-    val getMaterials: CommandAPICommand = CommandAPICommand(ConfigKeys.MATERIALS.key)
+    private val getMaterials: CommandAPICommand = CommandAPICommand(ConfigKeys.MATERIALS.key)
         .executes(CommandExecutor { sender, args ->
             val list = plugin.config.getList(ConfigKeys.MATERIALS.key)
             if (list == null) {
@@ -33,7 +34,7 @@ object ItemhuntSettings {
             sender.sendMessage("$prefix 出現する目標アイテムは以下の通りです\n" + list.joinToString("\n") { "・$it" })
         })
 
-    val setTargets: CommandAPICommand = CommandAPICommand(ConfigKeys.TARGETS.key)
+    private val setTargets: CommandAPICommand = CommandAPICommand(ConfigKeys.TARGETS.key)
         .withArguments(
             IntegerArgument("1フェーズあたりの目標アイテムの数", 1)
         )
@@ -44,7 +45,7 @@ object ItemhuntSettings {
             sender.sendMessage("$prefix 出現する目標アイテムの数を設定しました")
         })
 
-    val getTargets: CommandAPICommand = CommandAPICommand(ConfigKeys.TARGETS.key)
+    private val getTargets: CommandAPICommand = CommandAPICommand(ConfigKeys.TARGETS.key)
         .executes(CommandExecutor { sender, args ->
             val value = plugin.config.getInt(ConfigKeys.TARGETS.key)
             if (value == 0) {
@@ -54,7 +55,7 @@ object ItemhuntSettings {
             sender.sendMessage("$prefix 出現する目標アイテムの数は${value}です")
         })
 
-    val setPhaseTime: CommandAPICommand = CommandAPICommand(ConfigKeys.PHASE_TIME.key)
+    private val setPhaseTime: CommandAPICommand = CommandAPICommand(ConfigKeys.PHASE_TIME.key)
         .withArguments(
             LongArgument("1フェーズあたりの時間(秒)", 1)
         )
@@ -65,7 +66,7 @@ object ItemhuntSettings {
             sender.sendMessage("$prefix フェーズの時間を設定しました")
         })
 
-    val getPhaseTime: CommandAPICommand = CommandAPICommand(ConfigKeys.PHASE_TIME.key)
+    private val getPhaseTime: CommandAPICommand = CommandAPICommand(ConfigKeys.PHASE_TIME.key)
         .executes(CommandExecutor { sender, args ->
             val value = plugin.config.getLong(ConfigKeys.PHASE_TIME.key)
             if (value == 0L) {
@@ -75,7 +76,7 @@ object ItemhuntSettings {
             sender.sendMessage("$prefix 1フェーズあたりの時間は${value}秒です")
         })
 
-    val setPhases: CommandAPICommand = CommandAPICommand(ConfigKeys.PHASES.key)
+    private val setPhases: CommandAPICommand = CommandAPICommand(ConfigKeys.PHASES.key)
         .withArguments(
             IntegerArgument("フェーズ数", 1)
         )
@@ -86,7 +87,7 @@ object ItemhuntSettings {
             sender.sendMessage("$prefix フェーズ数を設定しました")
         })
 
-    val getPhases: CommandAPICommand = CommandAPICommand(ConfigKeys.PHASES.key)
+    private val getPhases: CommandAPICommand = CommandAPICommand(ConfigKeys.PHASES.key)
         .executes(CommandExecutor { sender, args ->
             val value = plugin.config.getInt(ConfigKeys.PHASES.key)
             if (value == 0) {
@@ -94,6 +95,23 @@ object ItemhuntSettings {
                 return@CommandExecutor
             }
             sender.sendMessage("$prefix フェーズ数は${value}です")
+        })
+
+    private val setPvp: CommandAPICommand = CommandAPICommand(ConfigKeys.PVP.key)
+        .withArguments(
+            BooleanArgument("PVP")
+        )
+        .executes(CommandExecutor { sender, args ->
+            val value = args[0] as Boolean
+            plugin.config.set(ConfigKeys.PVP.key, value)
+            plugin.saveConfig()
+            sender.sendMessage("$prefix PVPを設定しました")
+        })
+
+    private val getPvp: CommandAPICommand = CommandAPICommand(ConfigKeys.PVP.key)
+        .executes(CommandExecutor { sender, args ->
+            val value = plugin.config.getBoolean(ConfigKeys.PVP.key)
+            sender.sendMessage("$prefix PVPは${value}です")
         })
 
     val settings = CommandAPICommand("settings")
@@ -105,6 +123,8 @@ object ItemhuntSettings {
             setPhaseTime,
             getPhaseTime,
             setPhases,
-            getPhases
+            getPhases,
+            setPvp,
+            getPvp
         )
 }
