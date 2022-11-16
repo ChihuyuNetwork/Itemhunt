@@ -80,11 +80,9 @@ class Itemhunt : JavaPlugin(), Listener {
                 val e = e as EntityDamageByEntityEvent
                 val from = e.damager
 
-                if (from !is Player || !plugin.config.getBoolean("pvp")) {
-                    e.isCancelled = false
-                }
+                e.isCancelled = from is Player && plugin.config.getBoolean("pvp")
             }
-            else -> e.isCancelled = false
+            else -> e.isCancelled = true
         }
     }
 
@@ -98,6 +96,7 @@ class Itemhunt : JavaPlugin(), Listener {
 
         if (player.inventory.filterNotNull().none { item -> item.itemMeta?.hasCustomModelData() == true }) player.inventory.addItem(POINT_HOPPER)
         player.gameMode = if (started) GameMode.SURVIVAL else GameMode.ADVENTURE
+        player.isInvulnerable = false
     }
 
     @EventHandler
@@ -134,17 +133,17 @@ class Itemhunt : JavaPlugin(), Listener {
         if (clicked.size != 9) return
 
         plugin.runTaskLater(1) {
-            clicked.contents.filterNotNull().forEach {
-                if (it.type !in TargetItem.targetItem) return@forEach
+            clicked.contents.filterNotNull().forEach { clicked ->
+                if (clicked.type !in TargetItem.activeTarget) return@forEach
 
                 PlayerData.data[player.uniqueId]?.set(
-                    it.type,
-                    (PlayerData.data[player.uniqueId]?.get(it.type) ?: 0) +
-                        (TargetDataUtil.getPoint(it.type) ?: 0) * it.amount
+                    clicked.type,
+                    (PlayerData.data[player.uniqueId]?.get(clicked.type) ?: 0) +
+                        (TargetDataUtil.getPoint(clicked.type) ?: 0) * clicked.amount
                 )
 
                 // remove item
-                it.amount = 0
+                clicked.amount = 0
                 player.playSound(player, Sound.ENTITY_EXPERIENCE_ORB_PICKUP, .8f, 1f)
             }
 

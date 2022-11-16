@@ -87,12 +87,12 @@ object ItemhuntStart {
                     }
                 }
 
-                val taskUpdateTargetItem = plugin.runTaskTimer(0, secondsPerPhase * 20) {
+                val taskUpdateActiveItem = plugin.runTaskTimer(0, secondsPerPhase * 20) {
                     PhaseData.elapsedPhases++
 
-                    TargetItem.targetItem.clear()
+                    TargetItem.activeTarget.clear()
                     repeat(targets) {
-                        TargetItem.targetItem += TargetItem.data.filterKeys { it in materials.map { TargetCategory.valueOf(it.toString()) } }.values.flatMap { it.keys }.random()
+                        TargetItem.activeTarget += TargetItem.data.filterKeys { it in materials.map { material -> TargetCategory.valueOf(material.toString()) } }.values.flatMap { it.keys }.random()
                     }
                     ScoreboardUtil.updateServerScoreboard()
 
@@ -105,7 +105,7 @@ object ItemhuntStart {
 
                 val taskGameEnd = plugin.runTaskLater((gameFinishEpoch - startedEpoch) * 20) {
                     taskUpdateBossbar.cancel()
-                    taskUpdateTargetItem.cancel()
+                    taskUpdateActiveItem.cancel()
 
                     onGameEnd()
                 }
@@ -183,14 +183,12 @@ object ItemhuntStart {
             player.gameMode = GameMode.ADVENTURE
         }
 
-        TargetItem.targetItem.clear()
+        TargetItem.activeTarget.clear()
         ScoreboardUtil.updateServerScoreboard()
     }
 
     private fun formatTime(timeSeconds: Long): String {
-        return "${"%02d".format(timeSeconds.floorDiv(3600))}:" + "${"%02d".format(timeSeconds.floorDiv(60))}:" + "%02d".format(
-            timeSeconds % 60
-        )
+        return "${"%02d".format(timeSeconds.floorDiv(3600))}:" + "${"%02d".format(timeSeconds.floorDiv(60) % 60)}:" + "%02d".format(timeSeconds % 60)
     }
 
     private fun nowEpoch(): Long {
