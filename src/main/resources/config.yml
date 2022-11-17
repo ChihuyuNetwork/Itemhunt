@@ -1,5 +1,5 @@
-targets: 2
+targets: 3
 materials:
   - ORE_NORMAL
-phase_time: 180
-phases: 3
+phase_time: 600
+phases: 6
