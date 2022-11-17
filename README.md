@@ -1,10 +1,10 @@
-# Itemhunt
+# アイテムハント
 指定されたアイテムを一番多く集めて勝利しよう
 
-## Depends
+## 依存プラグイン
 [CommandAPI](https://www.spigotmc.org/resources/api-commandapi-1-13-1-19-2.62353/)
 
-## Commands
+## コマンド
 * `/itemhunt[ih] start`  
 ゲームを開始します
 
@@ -25,5 +25,5 @@ targets.ymlからポイントのデータをインポートします
   * `pvp`  
   PvPの有無を設定します
 
-## Permissions
+## パーミッション
 全てのコマンドのパーミッションはOPに設定されています
