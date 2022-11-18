@@ -102,6 +102,7 @@ object ItemhuntStart {
                     }
 
                     TargetItem.activeTarget.clear()
+                    PlayerData.data.clear()
                     ScoreboardUtil.updateServerScoreboard()
                 }
 
