@@ -76,6 +76,7 @@ class Itemhunt : JavaPlugin(), Listener {
 
     @EventHandler
     fun onDamage(e: EntityDamageEvent) {
+        if (e.entity !is Player) return
         when (e.cause) {
             DamageCause.ENTITY_ATTACK -> {
                 val e = e as EntityDamageByEntityEvent
