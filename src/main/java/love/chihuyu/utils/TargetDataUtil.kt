@@ -1,7 +1,6 @@
 package love.chihuyu.utils
 
 import love.chihuyu.Itemhunt.Companion.plugin
-import love.chihuyu.data.TargetCategory
 import love.chihuyu.data.TargetItem
 import org.bukkit.Material
 import org.bukkit.configuration.file.YamlConfiguration
@@ -17,7 +16,7 @@ object TargetDataUtil {
             val category = section.getConfigurationSection(categoryName) ?: return
             category.getKeys(false).forEach { materialName ->
                 val material = category.getInt(materialName)
-                TargetItem.data.getOrPut(TargetCategory.valueOf(categoryName)) { mutableMapOf() }[Material.valueOf(materialName)] = material
+                TargetItem.data.getOrPut(categoryName) { mutableMapOf() }[Material.valueOf(materialName)] = material
             }
         }
     }

@@ -9,13 +9,13 @@ import dev.jorel.commandapi.executors.CommandExecutor
 import love.chihuyu.Itemhunt.Companion.plugin
 import love.chihuyu.Itemhunt.Companion.prefix
 import love.chihuyu.config.ConfigKeys
-import love.chihuyu.data.TargetCategory
+import love.chihuyu.data.TargetItem
 
 object ItemhuntSettings {
 
     private val setMaterials: CommandAPICommand = CommandAPICommand("materials")
         .withArguments(
-            ListArgumentBuilder<String>("出現する目標アイテム").allowDuplicates(false).withList(TargetCategory.values().map { it.name }).withStringMapper().build()
+            ListArgumentBuilder<String>("出現する目標アイテム").allowDuplicates(false).withList(TargetItem.data.keys).withStringMapper().build()
         )
         .executes(
             CommandExecutor { sender, args ->

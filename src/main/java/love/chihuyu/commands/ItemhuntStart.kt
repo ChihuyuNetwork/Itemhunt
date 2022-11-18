@@ -9,7 +9,6 @@ import love.chihuyu.Itemhunt.Companion.prefix
 import love.chihuyu.config.ConfigKeys
 import love.chihuyu.data.PhaseData
 import love.chihuyu.data.PlayerData
-import love.chihuyu.data.TargetCategory
 import love.chihuyu.data.TargetItem
 import love.chihuyu.utils.*
 import net.md_5.bungee.api.chat.HoverEvent
@@ -145,11 +144,7 @@ object ItemhuntStart {
                     TargetItem.activeTarget.clear()
                     repeat(targets) {
                         TargetItem.activeTarget += TargetItem.data.filterKeys {
-                            it in materials.map { material ->
-                                TargetCategory.valueOf(
-                                    material.toString()
-                                )
-                            }
+                            it in materials.map { material -> material.toString() }
                         }.values.flatMap { it.keys }.random()
                     }
                     ScoreboardUtil.updateServerScoreboard()

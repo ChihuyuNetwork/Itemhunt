@@ -3,6 +3,7 @@ package love.chihuyu
 import com.convallyria.languagy.api.language.Language
 import com.convallyria.languagy.api.language.Translator
 import love.chihuyu.commands.CommandItemhunt
+import love.chihuyu.config.ConfigKeys
 import love.chihuyu.data.PlayerData
 import love.chihuyu.data.TargetItem
 import love.chihuyu.utils.BossbarUtil
@@ -80,7 +81,7 @@ class Itemhunt : JavaPlugin(), Listener {
                 val e = e as EntityDamageByEntityEvent
                 val from = e.damager
 
-                e.isCancelled = from is Player && plugin.config.getBoolean("pvp")
+                e.isCancelled = from !is Player || !plugin.config.getBoolean(ConfigKeys.PVP.key)
             }
             else -> e.isCancelled = true
         }
