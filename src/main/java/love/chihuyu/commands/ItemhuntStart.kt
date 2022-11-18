@@ -11,17 +11,16 @@ import love.chihuyu.data.PhaseData
 import love.chihuyu.data.PlayerData
 import love.chihuyu.data.TargetCategory
 import love.chihuyu.data.TargetItem
-import love.chihuyu.utils.BossbarUtil
-import love.chihuyu.utils.ScoreboardUtil
-import love.chihuyu.utils.runTaskLater
-import love.chihuyu.utils.runTaskTimer
+import love.chihuyu.utils.*
 import net.md_5.bungee.api.chat.HoverEvent
 import net.md_5.bungee.api.chat.TextComponent
 import net.md_5.bungee.api.chat.hover.content.Text
-import org.bukkit.*
-import org.bukkit.boss.BarColor
-import org.bukkit.boss.BarStyle
-import java.time.Instant
+import org.bukkit.Bukkit
+import org.bukkit.ChatColor
+import org.bukkit.GameMode
+import org.bukkit.Sound
+import org.bukkit.potion.PotionEffect
+import org.bukkit.potion.PotionEffectType
 
 object ItemhuntStart {
 
@@ -32,8 +31,80 @@ object ItemhuntStart {
                 val secondsPerPhase = plugin.config.getLong(ConfigKeys.PHASE_TIME.key)
                 val materials = plugin.config.getList(ConfigKeys.MATERIALS.key)
                 val targets = plugin.config.getInt(ConfigKeys.TARGETS.key)
-                val startedEpoch = nowEpoch()
+                val nightVision = plugin.config.getBoolean(ConfigKeys.NIGHT_VISION.key)
+                val startedEpoch = EpochUtil.nowEpoch()
                 val gameFinishEpoch = startedEpoch + (secondsPerPhase * phases)
+
+                fun onGameStart() {
+                    plugin.server.onlinePlayers.forEach {
+                        PlayerData.data[it.uniqueId] = mutableMapOf()
+                        it.gameMode = GameMode.SURVIVAL
+                        if (it.inventory.filterNotNull()
+                            .none { item -> item.itemMeta?.hasCustomModelData() == true }
+                        ) it.inventory.addItem(POINT_HOPPER)
+                        if (nightVision) it.addPotionEffect(PotionEffect(PotionEffectType.NIGHT_VISION, Int.MAX_VALUE, 0, false, false, true))
+                    }
+
+                    plugin.server.broadcastMessage(
+                        """
+                        ${ChatColor.GOLD}${ChatColor.STRIKETHROUGH}${ChatColor.BOLD}${" ".repeat(42)}${ChatColor.RESET}
+                        ${" ".repeat(1)}
+                        アイテムハント開始！
+                        ${" ".repeat(2)}
+                        ${ChatColor.GOLD}${ChatColor.STRIKETHROUGH}${ChatColor.BOLD}${" ".repeat(42)}${ChatColor.RESET}
+                        """.trimIndent()
+                    )
+                }
+
+                fun onGameEnd() {
+                    BossbarUtil.removeBossbar("bruh")
+                    PhaseData.elapsedPhases = 0
+                    Itemhunt.started = false
+
+                    val sortedPlayerData =
+                        PlayerData.data.toList().sortedByDescending { it.second.map { scores -> scores.value }.sum() }
+                            .filterNot { it.second.values.sum() == 0 }
+
+                    plugin.server.onlinePlayers.forEach { player ->
+                        val yourRank = sortedPlayerData.map { it.first }.indexOf(player.uniqueId).inc()
+                        player.spigot().sendMessage(
+                            TextComponent(
+                                """
+                                    ${ChatColor.GOLD}${ChatColor.STRIKETHROUGH}${ChatColor.BOLD}${" ".repeat(42)}${ChatColor.RESET}
+                                    ${
+                                if (sortedPlayerData.isNotEmpty()) {
+                                    """
+                                            アイテムハント終了！
+                                            勝者は${ChatColor.BOLD}${Bukkit.getOfflinePlayer(sortedPlayerData[0].first).name}${ChatColor.RESET}です
+                                            あなたは${if (yourRank == 0) "圏外" else "${yourRank}位"}でした
+                                            """
+                                } else {
+                                    """
+                                            アイテムハント終了！
+                                            勝者はいませんでした！
+                                            """
+                                }
+                                }
+                                    ${ChatColor.GOLD}${ChatColor.STRIKETHROUGH}${ChatColor.BOLD}${" ".repeat(42)}${ChatColor.RESET}
+                                """.trimIndent()
+                            ).apply endMessage@{
+                                val hoverEvent = HoverEvent(
+                                    HoverEvent.Action.SHOW_TEXT,
+                                    Text(sortedPlayerData.joinToString("\n") { "#${sortedPlayerData.indexOf(it).inc()} ${Bukkit.getOfflinePlayer(it.first).name} ${it.second.values.sum()}pt" })
+                                )
+                                val textComponent = TextComponent("${ChatColor.UNDERLINE}ここにカーソルを合わせるとランキングが表示されます").apply { this.hoverEvent = hoverEvent }
+                                this@endMessage.addExtra(textComponent)
+                            }
+                        )
+
+                        player.playSound(player, Sound.ENTITY_PLAYER_LEVELUP, .5f, 1f)
+                        player.gameMode = GameMode.ADVENTURE
+                        player.removePotionEffect(PotionEffectType.NIGHT_VISION)
+                    }
+
+                    TargetItem.activeTarget.clear()
+                    ScoreboardUtil.updateServerScoreboard()
+                }
 
                 fun error(key: String) {
                     sender.sendMessage("$prefix ${key}が未設定です")
@@ -64,27 +135,8 @@ object ItemhuntStart {
 
                 onGameStart()
 
-                val taskUpdateBossbar = plugin.runTaskTimer(0, 20) {
-                    val phaseEndEpoch = startedEpoch + (PhaseData.elapsedPhases * secondsPerPhase)
-                    BossbarUtil.removeBossbar("bruh")
-
-                    val bossBar = Bukkit.createBossBar(
-                        NamespacedKey.fromString("bruh")!!,
-                        "フェーズ ${PhaseData.elapsedPhases}/$phases - ${formatTime(phaseEndEpoch - nowEpoch())}",
-                        BarColor.RED,
-                        BarStyle.SEGMENTED_6
-                    )
-
-                    // Avoidance exception "Progress must be between 0.0 and 1.0 (-0.05)"
-                    bossBar.progress = (1.0 / secondsPerPhase) * (phaseEndEpoch - nowEpoch()).unaryPlus()
-                    bossBar.isVisible = true
-
-                    plugin.server.onlinePlayers.forEach {
-                        if (phaseEndEpoch - nowEpoch() in 1..5) {
-                            it.playSound(it, Sound.UI_BUTTON_CLICK, 1f, 1f)
-                        }
-                        bossBar.addPlayer(it)
-                    }
+                val taskTickGame = plugin.runTaskTimer(0, 20) {
+                    BossbarUtil.updateBossbar(startedEpoch, secondsPerPhase, phases)
                 }
 
                 val taskUpdateActiveItem = plugin.runTaskTimer(0, secondsPerPhase * 20) {
@@ -92,7 +144,13 @@ object ItemhuntStart {
 
                     TargetItem.activeTarget.clear()
                     repeat(targets) {
-                        TargetItem.activeTarget += TargetItem.data.filterKeys { it in materials.map { material -> TargetCategory.valueOf(material.toString()) } }.values.flatMap { it.keys }.random()
+                        TargetItem.activeTarget += TargetItem.data.filterKeys {
+                            it in materials.map { material ->
+                                TargetCategory.valueOf(
+                                    material.toString()
+                                )
+                            }
+                        }.values.flatMap { it.keys }.random()
                     }
                     ScoreboardUtil.updateServerScoreboard()
 
@@ -104,94 +162,11 @@ object ItemhuntStart {
                 }
 
                 val taskGameEnd = plugin.runTaskLater((gameFinishEpoch - startedEpoch) * 20) {
-                    taskUpdateBossbar.cancel()
+                    taskTickGame.cancel()
                     taskUpdateActiveItem.cancel()
 
                     onGameEnd()
                 }
             }
         )
-
-    private fun onGameStart() {
-        plugin.server.onlinePlayers.forEach {
-            PlayerData.data[it.uniqueId] = mutableMapOf()
-            it.gameMode = GameMode.SURVIVAL
-            if (it.inventory.filterNotNull()
-                    .none { item -> item.itemMeta?.hasCustomModelData() == true }
-            ) it.inventory.addItem(POINT_HOPPER)
-        }
-
-        plugin.server.broadcastMessage(
-            """
-            ${ChatColor.GOLD}${ChatColor.STRIKETHROUGH}${ChatColor.BOLD}${" ".repeat(42)}${ChatColor.RESET}
-            ${" ".repeat(1)}
-            アイテムハント開始！
-            ${" ".repeat(2)}
-            ${ChatColor.GOLD}${ChatColor.STRIKETHROUGH}${ChatColor.BOLD}${" ".repeat(42)}${ChatColor.RESET}
-            """.trimIndent()
-        )
-    }
-
-    private fun onGameEnd() {
-        BossbarUtil.removeBossbar("bruh")
-        PhaseData.elapsedPhases = 0
-        Itemhunt.started = false
-
-        val sortedPlayerData =
-            PlayerData.data.toList().sortedByDescending { it.second.map { scores -> scores.value }.sum() }
-                .filterNot { it.second.values.sum() == 0 }
-
-        plugin.server.onlinePlayers.forEach { player ->
-            val yourRank = sortedPlayerData.map { it.first }.indexOf(player.uniqueId).inc()
-            player.spigot().sendMessage(
-                TextComponent(
-                    """
-                    ${ChatColor.GOLD}${ChatColor.STRIKETHROUGH}${ChatColor.BOLD}${" ".repeat(42)}${ChatColor.RESET}
-                    ${
-                        if (sortedPlayerData.isNotEmpty()) {
-                            """
-                    アイテムハント終了！
-                    勝者は${ChatColor.BOLD}${Bukkit.getOfflinePlayer(sortedPlayerData[0].first).name}${ChatColor.RESET}です
-                    あなたは${if (yourRank == 0) "圏外" else "${yourRank}位"}でした
-                    """
-                        } else {
-                            """
-                    アイテムハント終了！
-                    勝者はいませんでした！
-                    """
-                        }
-                    }
-                    ${ChatColor.GOLD}${ChatColor.STRIKETHROUGH}${ChatColor.BOLD}${" ".repeat(42)}${ChatColor.RESET}
-                    """.trimIndent()
-                ).apply endMessage@{
-                    this@endMessage.addExtra(
-                        TextComponent("${ChatColor.UNDERLINE}ここにカーソルを合わせるとランキングが表示されます").apply rankingComponent@{
-                            this@rankingComponent.hoverEvent = HoverEvent(
-                                HoverEvent.Action.SHOW_TEXT,
-                                Text(sortedPlayerData.joinToString("\n") {
-                                    "#${
-                                        sortedPlayerData.indexOf(it).inc()
-                                    } ${Bukkit.getOfflinePlayer(it.first).name} ${it.second.values.sum()}pt"
-                                })
-                            )
-                        }
-                    )
-                }
-            )
-
-            player.playSound(player, Sound.ENTITY_PLAYER_LEVELUP, .5f, 1f)
-            player.gameMode = GameMode.ADVENTURE
-        }
-
-        TargetItem.activeTarget.clear()
-        ScoreboardUtil.updateServerScoreboard()
-    }
-
-    private fun formatTime(timeSeconds: Long): String {
-        return "${"%02d".format(timeSeconds.floorDiv(3600))}:" + "${"%02d".format(timeSeconds.floorDiv(60) % 60)}:" + "%02d".format(timeSeconds % 60)
-    }
-
-    private fun nowEpoch(): Long {
-        return Instant.now().epochSecond
-    }
 }
