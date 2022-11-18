@@ -70,22 +70,22 @@ object ItemhuntStart {
                         player.spigot().sendMessage(
                             TextComponent(
                                 """
-                                    ${ChatColor.GOLD}${ChatColor.STRIKETHROUGH}${ChatColor.BOLD}${" ".repeat(42)}${ChatColor.RESET}
+                                ${ChatColor.GOLD}${ChatColor.STRIKETHROUGH}${ChatColor.BOLD}${" ".repeat(42)}${ChatColor.RESET}
                                     ${
                                 if (sortedPlayerData.isNotEmpty()) {
                                     """
-                                            アイテムハント終了！
-                                            勝者は${ChatColor.BOLD}${Bukkit.getOfflinePlayer(sortedPlayerData[0].first).name}${ChatColor.RESET}です
-                                            あなたは${if (yourRank == 0) "圏外" else "${yourRank}位"}でした
-                                            """
+                                アイテムハント終了！
+                                勝者は${ChatColor.BOLD}${Bukkit.getOfflinePlayer(sortedPlayerData[0].first).name}${ChatColor.RESET}です
+                                あなたは${if (yourRank == 0) "圏外" else "${yourRank}位"}でした
+                                """
                                 } else {
                                     """
-                                            アイテムハント終了！
-                                            勝者はいませんでした！
-                                            """
+                                アイテムハント終了！
+                                勝者はいませんでした！
+                                """
                                 }
                                 }
-                                    ${ChatColor.GOLD}${ChatColor.STRIKETHROUGH}${ChatColor.BOLD}${" ".repeat(42)}${ChatColor.RESET}
+                                ${ChatColor.GOLD}${ChatColor.STRIKETHROUGH}${ChatColor.BOLD}${" ".repeat(42)}${ChatColor.RESET}
                                 """.trimIndent()
                             ).apply endMessage@{
                                 val hoverEvent = HoverEvent(
