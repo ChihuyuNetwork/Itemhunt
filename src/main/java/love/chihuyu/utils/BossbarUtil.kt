@@ -16,12 +16,12 @@ object BossbarUtil {
 
     fun updateBossbar(startedEpoch: Long, secondsPerPhase: Long, phases: Int) {
         val phaseEndEpoch = startedEpoch + (PhaseData.elapsedPhases * secondsPerPhase)
-        BossbarUtil.removeBossbar("bruh")
+        removeBossbar("bruh")
 
         val bossBar = Bukkit.createBossBar(
             NamespacedKey.fromString("bruh")!!,
             "フェーズ ${PhaseData.elapsedPhases}/$phases - ${EpochUtil.formatTime(phaseEndEpoch - EpochUtil.nowEpoch())}",
-            BarColor.RED,
+            BarColor.BLUE,
             BarStyle.SEGMENTED_6
         )
 
