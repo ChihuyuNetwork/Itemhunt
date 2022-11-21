@@ -3,6 +3,7 @@ package love.chihuyu
 import com.convallyria.languagy.api.language.Language
 import com.convallyria.languagy.api.language.Translator
 import love.chihuyu.commands.CommandItemhunt
+import love.chihuyu.commands.CommandSuicide
 import love.chihuyu.config.ConfigKeys
 import love.chihuyu.data.PlayerData
 import love.chihuyu.data.TargetItem
@@ -65,6 +66,7 @@ class Itemhunt : JavaPlugin(), Listener {
         server.pluginManager.registerEvents(this, this)
 
         CommandItemhunt.main.register()
+        CommandSuicide.main.register()
 
         saveDefaultConfig()
         TargetDataUtil.import()
