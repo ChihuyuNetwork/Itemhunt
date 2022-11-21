@@ -1,9 +1,11 @@
 package love.chihuyu.utils
 
+import love.chihuyu.Itemhunt
 import org.bukkit.Material
 import org.bukkit.attribute.Attribute
 import org.bukkit.attribute.AttributeModifier
 import org.bukkit.enchantments.Enchantment
+import org.bukkit.entity.Player
 import org.bukkit.inventory.ItemFlag
 import org.bukkit.inventory.ItemStack
 
@@ -37,5 +39,11 @@ object ItemUtil {
 
         item.itemMeta = meta
         return item
+    }
+
+    fun addPointHopperIfHavent(player: Player) {
+        if (player.inventory.filterNotNull().none { item -> item.itemMeta?.hasCustomModelData() == true }) player.inventory.addItem(
+            Itemhunt.POINT_HOPPER
+        )
     }
 }

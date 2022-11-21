@@ -3,7 +3,6 @@ package love.chihuyu.commands
 import dev.jorel.commandapi.CommandAPICommand
 import dev.jorel.commandapi.executors.CommandExecutor
 import love.chihuyu.Itemhunt
-import love.chihuyu.Itemhunt.Companion.POINT_HOPPER
 import love.chihuyu.Itemhunt.Companion.plugin
 import love.chihuyu.Itemhunt.Companion.prefix
 import love.chihuyu.config.ConfigKeys
@@ -38,9 +37,7 @@ object ItemhuntStart {
                     plugin.server.onlinePlayers.forEach {
                         PlayerData.data[it.uniqueId] = mutableMapOf()
                         it.gameMode = GameMode.SURVIVAL
-                        if (it.inventory.filterNotNull()
-                            .none { item -> item.itemMeta?.hasCustomModelData() == true }
-                        ) it.inventory.addItem(POINT_HOPPER)
+                        ItemUtil.addPointHopperIfHavent(it)
                         if (nightVision) it.addPotionEffect(PotionEffect(PotionEffectType.NIGHT_VISION, Int.MAX_VALUE, 0, false, false, true))
                     }
 

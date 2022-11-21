@@ -7,10 +7,7 @@ import love.chihuyu.commands.CommandSuicide
 import love.chihuyu.config.ConfigKeys
 import love.chihuyu.data.PlayerData
 import love.chihuyu.data.TargetItem
-import love.chihuyu.utils.BossbarUtil
-import love.chihuyu.utils.ScoreboardUtil
-import love.chihuyu.utils.TargetDataUtil
-import love.chihuyu.utils.runTaskLater
+import love.chihuyu.utils.*
 import org.bukkit.*
 import org.bukkit.enchantments.Enchantment
 import org.bukkit.entity.Player
@@ -21,12 +18,14 @@ import org.bukkit.event.entity.EntityDamageByEntityEvent
 import org.bukkit.event.entity.EntityDamageEvent
 import org.bukkit.event.entity.EntityDamageEvent.DamageCause
 import org.bukkit.event.entity.FoodLevelChangeEvent
+import org.bukkit.event.entity.PlayerDeathEvent
 import org.bukkit.event.inventory.InventoryClickEvent
 import org.bukkit.event.inventory.InventoryCloseEvent
 import org.bukkit.event.inventory.InventoryType
 import org.bukkit.event.player.PlayerDropItemEvent
 import org.bukkit.event.player.PlayerInteractEvent
 import org.bukkit.event.player.PlayerJoinEvent
+import org.bukkit.event.player.PlayerRespawnEvent
 import org.bukkit.inventory.InventoryHolder
 import org.bukkit.inventory.ItemFlag
 import org.bukkit.inventory.ItemStack
@@ -98,9 +97,10 @@ class Itemhunt : JavaPlugin(), Listener {
         PlayerData.data.putIfAbsent(e.player.uniqueId, mutableMapOf())
         ScoreboardUtil.updateServerScoreboard()
 
-        if (player.inventory.filterNotNull().none { item -> item.itemMeta?.hasCustomModelData() == true }) player.inventory.addItem(POINT_HOPPER)
+        ItemUtil.addPointHopperIfHavent(player)
         player.gameMode = if (started) GameMode.SURVIVAL else GameMode.ADVENTURE
         player.isInvulnerable = false
+        player.activePotionEffects.forEach { player.removePotionEffect(it.type) }
     }
 
     @EventHandler
@@ -167,5 +167,16 @@ class Itemhunt : JavaPlugin(), Listener {
         player.inventory.addItem(*inv.contents.filterNotNull().toTypedArray()).forEach {
             player.world.dropItemNaturally(player.location, it.value)
         }
+    }
+
+    @EventHandler
+    fun onRespawn(e: PlayerRespawnEvent) {
+        val player = e.player
+        ItemUtil.addPointHopperIfHavent(player)
+    }
+
+    @EventHandler
+    fun onDeath(e: PlayerDeathEvent) {
+        e.drops.removeIf { it.itemMeta?.customModelData == 1 }
     }
 }
