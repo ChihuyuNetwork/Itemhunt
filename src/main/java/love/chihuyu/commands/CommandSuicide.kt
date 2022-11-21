@@ -7,7 +7,6 @@ object CommandSuicide {
 
     val main = CommandAPICommand("suicide")
         .executesPlayer(PlayerCommandExecutor { sender, args ->
-            sender.sendMessage("ouch!")
             sender.health = .0
         })
 }
