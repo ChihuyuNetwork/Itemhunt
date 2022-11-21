@@ -26,7 +26,7 @@ object BossbarUtil {
         )
 
         // Avoidance exception "Progress must be between 0.0 and 1.0 (-0.05)"
-        bossBar.progress = (1.0 / secondsPerPhase) * (phaseEndEpoch - EpochUtil.nowEpoch()).unaryPlus()
+        bossBar.progress = +(1.0 / secondsPerPhase) * +(phaseEndEpoch - EpochUtil.nowEpoch())
         bossBar.isVisible = true
 
         plugin.server.onlinePlayers.forEach {

@@ -152,7 +152,6 @@ object ItemhuntStart {
 
                     plugin.server.onlinePlayers.forEach { player ->
                         player.sendMessage("フェーズ${PhaseData.elapsedPhases}開始！")
-
                         player.playSound(player, Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1f, 1f)
                     }
                 }
