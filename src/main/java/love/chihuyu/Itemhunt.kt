@@ -30,6 +30,8 @@ import org.bukkit.inventory.InventoryHolder
 import org.bukkit.inventory.ItemFlag
 import org.bukkit.inventory.ItemStack
 import org.bukkit.plugin.java.JavaPlugin
+import org.bukkit.potion.PotionEffect
+import org.bukkit.potion.PotionEffectType
 import java.io.File
 
 class Itemhunt : JavaPlugin(), Listener {
@@ -173,6 +175,8 @@ class Itemhunt : JavaPlugin(), Listener {
     fun onRespawn(e: PlayerRespawnEvent) {
         val player = e.player
         ItemUtil.addPointHopperIfHavent(player)
+
+        if (plugin.config.getBoolean("night_vision")) player.addPotionEffect(PotionEffect(PotionEffectType.NIGHT_VISION, Int.MAX_VALUE, 0, false, false, true))
     }
 
     @EventHandler
