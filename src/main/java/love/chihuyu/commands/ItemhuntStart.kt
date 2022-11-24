@@ -13,10 +13,7 @@ import love.chihuyu.utils.*
 import net.md_5.bungee.api.chat.HoverEvent
 import net.md_5.bungee.api.chat.TextComponent
 import net.md_5.bungee.api.chat.hover.content.Text
-import org.bukkit.Bukkit
-import org.bukkit.ChatColor
-import org.bukkit.GameMode
-import org.bukkit.Sound
+import org.bukkit.*
 import org.bukkit.potion.PotionEffect
 import org.bukkit.potion.PotionEffectType
 
@@ -30,15 +27,17 @@ object ItemhuntStart {
                 val materials = plugin.config.getList(ConfigKeys.MATERIALS.key)
                 val targets = plugin.config.getInt(ConfigKeys.TARGETS.key)
                 val nightVision = plugin.config.getBoolean(ConfigKeys.NIGHT_VISION.key)
+                val keepInventory = plugin.config.getBoolean(ConfigKeys.KEEP_INVENTORY.key)
                 val startedEpoch = EpochUtil.nowEpoch()
                 val gameFinishEpoch = startedEpoch + (secondsPerPhase * phases)
 
                 fun onGameStart() {
-                    plugin.server.onlinePlayers.forEach {
-                        PlayerData.data[it.uniqueId] = mutableMapOf()
-                        it.gameMode = GameMode.SURVIVAL
-                        ItemUtil.addPointHopperIfHavent(it)
-                        if (nightVision) it.addPotionEffect(PotionEffect(PotionEffectType.NIGHT_VISION, Int.MAX_VALUE, 0, false, false, true))
+                    plugin.server.onlinePlayers.forEach { player ->
+                        PlayerData.data[player.uniqueId] = mutableMapOf()
+                        player.gameMode = GameMode.SURVIVAL
+                        ItemUtil.addPointHopperIfHavent(player)
+                        if (nightVision) player.addPotionEffect(PotionEffect(PotionEffectType.NIGHT_VISION, Int.MAX_VALUE, 0, false, false, true))
+                        plugin.server.worlds.forEach { world -> world.setGameRule(GameRule.KEEP_INVENTORY, keepInventory) }
                     }
 
                     plugin.server.broadcastMessage(

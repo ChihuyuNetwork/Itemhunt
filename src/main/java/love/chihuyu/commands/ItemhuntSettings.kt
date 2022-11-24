@@ -155,7 +155,28 @@ object ItemhuntSettings {
             }
         )
 
-    val settings = CommandAPICommand("settings")
+    private val setKeepInventory: CommandAPICommand = CommandAPICommand(ConfigKeys.KEEP_INVENTORY.key)
+        .withArguments(
+            BooleanArgument("インベントリ保持")
+        )
+        .executes(
+            CommandExecutor { sender, args ->
+                val value = args[0] as Boolean
+                plugin.config.set(ConfigKeys.KEEP_INVENTORY.key, value)
+                plugin.saveConfig()
+                sender.sendMessage("$prefix インベントリ保持の有無を設定しました")
+            }
+        )
+
+    private val getKeepInventory: CommandAPICommand = CommandAPICommand(ConfigKeys.KEEP_INVENTORY.key)
+        .executes(
+            CommandExecutor { sender, args ->
+                val value = plugin.config.getBoolean(ConfigKeys.KEEP_INVENTORY.key)
+                sender.sendMessage("$prefix インベントリ保持は${value}です")
+            }
+        )
+
+    val main = CommandAPICommand("settings")
         .withSubcommands(
             setMaterials,
             getMaterials,
@@ -168,6 +189,8 @@ object ItemhuntSettings {
             setPvp,
             getPvp,
             setNightVision,
-            getNightVision
+            getNightVision,
+            setKeepInventory,
+            getKeepInventory
         )
 }

@@ -6,5 +6,6 @@ enum class ConfigKeys(val key: String) {
     TARGETS("targets"),
     MATERIALS("materials"),
     PVP("pvp"),
-    NIGHT_VISION("night_vision")
+    NIGHT_VISION("night_vision"),
+    KEEP_INVENTORY("keep_inventory")
 }

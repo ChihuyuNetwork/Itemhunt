@@ -8,8 +8,8 @@ object CommandItemhunt {
         .withSubcommands(
             ItemhuntStart.main,
             ItemhuntImport.main,
-
-            ItemhuntSettings.settings
+            ItemhuntNewWorld.main,
+            ItemhuntSettings.main
         )
         .withPermission(CommandPermission.OP)
         .withAliases("ih")
