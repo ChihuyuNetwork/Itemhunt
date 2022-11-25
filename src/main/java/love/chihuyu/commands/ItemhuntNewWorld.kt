@@ -2,58 +2,38 @@ package love.chihuyu.commands
 
 import dev.jorel.commandapi.CommandAPICommand
 import dev.jorel.commandapi.executors.CommandExecutor
+import love.chihuyu.Itemhunt.Companion.mainWorld
 import love.chihuyu.Itemhunt.Companion.plugin
 import love.chihuyu.Itemhunt.Companion.prefix
-import org.bukkit.ChatColor
 import org.bukkit.World
 import org.bukkit.WorldCreator
-import java.io.File
+import org.bukkit.WorldType
 import java.util.*
-import kotlin.system.measureTimeMillis
 
 
 object ItemhuntNewWorld {
 
     val main: CommandAPICommand = CommandAPICommand("createworld")
         .executes(CommandExecutor { sender, args ->
+            sender.sendMessage("$prefix ワールドを再生成します")
+
             val seed = Random().nextLong()
-            val worlds = plugin.server.worlds
 
-            val regenerateWorld = measureTimeMillis {
-                worlds.forEach { world ->
-                    val oldFile = File(world.worldFolder, world.name)
-                    plugin.server.unloadWorld(world, false)
-                    if (!deleteDirectory(oldFile)) {
-                        sender.sendMessage("$prefix ${world.name}の削除に失敗しました")
-                    }
+            val newWorld = WorldCreator("world.$seed")
+                .environment(World.Environment.NORMAL)
+                .generateStructures(true)
+                .type(WorldType.NORMAL)
+                .seed(seed)
+                .createWorld()!!
 
-                    val newWorld = plugin.server.createWorld(
-                        WorldCreator(world.name)
-                            .environment(World.Environment.NORMAL)
-                            .generateStructures(true)
-                            .seed(seed)
-                    )!!
+            mainWorld = newWorld
 
-                    plugin.server.onlinePlayers.forEach {
-                        it.teleport(newWorld.spawnLocation)
-                    }
-                }
+            plugin.server.onlinePlayers.forEach {
+                it.teleport(mainWorld.spawnLocation)
             }
 
-            sender.sendMessage("$prefix 全てのワールドを再生成しました ${ChatColor.GRAY}(${regenerateWorld}ms)")
+            plugin.server.unloadWorld(plugin.server.getWorld("world")!!, false)
+
+            sender.sendMessage("$prefix 全てのワールドを再生成しました")
         })
-
-    private fun deleteDirectory(path: File): Boolean {
-        if (path.exists()) {
-            val files = path.listFiles()
-            files?.forEach { file2 ->
-                if (file2.isDirectory) {
-                    deleteDirectory(file2)
-                } else {
-                    file2.delete()
-                }
-            }
-        }
-        return path.delete()
-    }
 }

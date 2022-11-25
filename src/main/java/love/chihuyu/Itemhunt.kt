@@ -22,10 +22,7 @@ import org.bukkit.event.entity.PlayerDeathEvent
 import org.bukkit.event.inventory.InventoryClickEvent
 import org.bukkit.event.inventory.InventoryCloseEvent
 import org.bukkit.event.inventory.InventoryType
-import org.bukkit.event.player.PlayerDropItemEvent
-import org.bukkit.event.player.PlayerInteractEvent
-import org.bukkit.event.player.PlayerJoinEvent
-import org.bukkit.event.player.PlayerRespawnEvent
+import org.bukkit.event.player.*
 import org.bukkit.inventory.InventoryHolder
 import org.bukkit.inventory.ItemFlag
 import org.bukkit.inventory.ItemStack
@@ -39,6 +36,7 @@ class Itemhunt : JavaPlugin(), Listener {
     companion object {
         lateinit var plugin: JavaPlugin
         lateinit var translator: Translator
+        lateinit var mainWorld: World
         var started: Boolean = false
         val prefix = "${ChatColor.GOLD}[IH]${ChatColor.RESET}"
         val POINT_HOPPER = ItemStack(Material.NETHER_STAR).apply {
@@ -71,6 +69,8 @@ class Itemhunt : JavaPlugin(), Listener {
 
         saveDefaultConfig()
         TargetDataUtil.import()
+
+        mainWorld = plugin.server.getWorld("world")!!
     }
 
     override fun onDisable() {
@@ -182,5 +182,11 @@ class Itemhunt : JavaPlugin(), Listener {
     @EventHandler
     fun onDeath(e: PlayerDeathEvent) {
         e.drops.removeIf { it.itemMeta?.customModelData == 1 }
+    }
+
+    @EventHandler
+    fun onPreLogin(e: PlayerLoginEvent) {
+        val player = e.player
+        player.teleport(mainWorld.spawnLocation)
     }
 }
