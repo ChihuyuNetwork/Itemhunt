@@ -26,7 +26,7 @@ targets.ymlからポイントのデータをインポートします
   * `pvp`  
   PvPの有無を設定します
 
-* `/ih createworld`
+* `/ih createworld`  
 ワールドの再生成を行います
 元のワールドファイルは残るので手前で削除してください
 
