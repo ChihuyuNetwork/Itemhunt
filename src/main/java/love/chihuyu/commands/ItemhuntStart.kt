@@ -1,7 +1,7 @@
 package love.chihuyu.commands
 
 import dev.jorel.commandapi.CommandAPICommand
-import dev.jorel.commandapi.executors.CommandExecutor
+import dev.jorel.commandapi.executors.PlayerCommandExecutor
 import love.chihuyu.Itemhunt
 import love.chihuyu.Itemhunt.Companion.plugin
 import love.chihuyu.Itemhunt.Companion.prefix
@@ -20,14 +20,16 @@ import org.bukkit.potion.PotionEffectType
 object ItemhuntStart {
 
     val main = CommandAPICommand("start")
-        .executes(
-            CommandExecutor { sender, args ->
+        .executesPlayer(
+            PlayerCommandExecutor { sender, args ->
                 val phases = plugin.config.getInt(ConfigKeys.PHASES.key)
                 val secondsPerPhase = plugin.config.getLong(ConfigKeys.PHASE_TIME.key)
                 val materials = plugin.config.getList(ConfigKeys.MATERIALS.key)
                 val targets = plugin.config.getInt(ConfigKeys.TARGETS.key)
                 val nightVision = plugin.config.getBoolean(ConfigKeys.NIGHT_VISION.key)
                 val keepInventory = plugin.config.getBoolean(ConfigKeys.KEEP_INVENTORY.key)
+                val tpAfterStart = plugin.config.getBoolean(ConfigKeys.TP_AFTER_START.key)
+                val clearItem = plugin.config.getBoolean(ConfigKeys.CLEAR_ITEM.key)
                 val startedEpoch = EpochUtil.nowEpoch()
                 val gameFinishEpoch = startedEpoch + (secondsPerPhase * phases)
 
@@ -37,6 +39,7 @@ object ItemhuntStart {
                         player.gameMode = GameMode.SURVIVAL
                         ItemUtil.addPointHopperIfHavent(player)
                         if (nightVision) player.addPotionEffect(PotionEffect(PotionEffectType.NIGHT_VISION, Int.MAX_VALUE, 0, false, false, true))
+                        if (tpAfterStart) player.teleport(sender.location)
                         plugin.server.worlds.forEach { world -> world.setGameRule(GameRule.KEEP_INVENTORY, keepInventory) }
                     }
 
@@ -95,6 +98,7 @@ object ItemhuntStart {
                         player.playSound(player, Sound.ENTITY_PLAYER_LEVELUP, .5f, 1f)
                         player.gameMode = GameMode.ADVENTURE
                         player.removePotionEffect(PotionEffectType.NIGHT_VISION)
+                        if (clearItem) player.inventory.clear()
                     }
 
                     TargetItem.activeTarget.clear()
@@ -109,22 +113,22 @@ object ItemhuntStart {
 
                 if (materials == null) {
                     error("materials")
-                    return@CommandExecutor
+                    return@PlayerCommandExecutor
                 }
 
                 if (targets == 0) {
                     error("targets")
-                    return@CommandExecutor
+                    return@PlayerCommandExecutor
                 }
 
                 if (secondsPerPhase == 0L) {
                     error("phase_time")
-                    return@CommandExecutor
+                    return@PlayerCommandExecutor
                 }
 
                 if (phases == 0) {
                     error("phases")
-                    return@CommandExecutor
+                    return@PlayerCommandExecutor
                 }
 
                 Itemhunt.started = true

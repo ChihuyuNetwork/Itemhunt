@@ -102,7 +102,7 @@ class Itemhunt : JavaPlugin(), Listener {
         ItemUtil.addPointHopperIfHavent(player)
         player.gameMode = if (started) GameMode.SURVIVAL else GameMode.ADVENTURE
         player.isInvulnerable = false
-        player.activePotionEffects.forEach { player.removePotionEffect(it.type) }
+        if (!started) player.activePotionEffects.forEach { player.removePotionEffect(it.type) }
     }
 
     @EventHandler

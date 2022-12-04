@@ -23,10 +23,11 @@ repositories {
     maven { url = "https://oss.sonatype.org/content/repositories/central" }
     maven { url = "https://jitpack.io" }
     maven { url = "https://repo.convallyria.com/releases" }
+    maven { url = "https://repo.papermc.io/repository/maven-public/" }
 }
 
 dependencies {
-    compileOnly 'org.spigotmc:spigot-api:1.19.2-R0.1-SNAPSHOT'
+    compileOnly 'io.papermc.paper:paper-api:1.19.2-R0.1-SNAPSHOT'
     compileOnly 'org.spigotmc:spigot:1.19.2-R0.1-SNAPSHOT'
     compileOnly "dev.jorel:commandapi-core:8.5.1"
     implementation "com.convallyria.languagy:api:3.0.0"

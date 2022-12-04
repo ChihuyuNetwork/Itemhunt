@@ -176,6 +176,48 @@ object ItemhuntSettings {
             }
         )
 
+    private val setTpAfterStart: CommandAPICommand = CommandAPICommand(ConfigKeys.TP_AFTER_START.key)
+        .withArguments(
+            BooleanArgument("開始後にTPするかどうか")
+        )
+        .executes(
+            CommandExecutor { sender, args ->
+                val value = args[0] as Boolean
+                plugin.config.set(ConfigKeys.TP_AFTER_START.key, value)
+                plugin.saveConfig()
+                sender.sendMessage("$prefix 開始後にTPするかどうかを設定しました")
+            }
+        )
+
+    private val getTpAfterStart: CommandAPICommand = CommandAPICommand(ConfigKeys.TP_AFTER_START.key)
+        .executes(
+            CommandExecutor { sender, args ->
+                val value = plugin.config.getBoolean(ConfigKeys.TP_AFTER_START.key)
+                sender.sendMessage("$prefix インベントリ保持は${value}です")
+            }
+        )
+
+    private val setClearItem: CommandAPICommand = CommandAPICommand(ConfigKeys.CLEAR_ITEM.key)
+        .withArguments(
+            BooleanArgument("ゲームが終了したらアイテムを消去するかどうか")
+        )
+        .executes(
+            CommandExecutor { sender, args ->
+                val value = args[0] as Boolean
+                plugin.config.set(ConfigKeys.CLEAR_ITEM.key, value)
+                plugin.saveConfig()
+                sender.sendMessage("$prefix アイテム消去を設定しました")
+            }
+        )
+
+    private val getClearItem: CommandAPICommand = CommandAPICommand(ConfigKeys.CLEAR_ITEM.key)
+        .executes(
+            CommandExecutor { sender, args ->
+                val value = plugin.config.getBoolean(ConfigKeys.TP_AFTER_START.key)
+                sender.sendMessage("$prefix アイテム消去は${value}です")
+            }
+        )
+
     val main = CommandAPICommand("settings")
         .withSubcommands(
             setMaterials,
@@ -191,6 +233,10 @@ object ItemhuntSettings {
             setNightVision,
             getNightVision,
             setKeepInventory,
-            getKeepInventory
+            getKeepInventory,
+            setTpAfterStart,
+            getTpAfterStart,
+            setClearItem,
+            getClearItem
         )
 }
