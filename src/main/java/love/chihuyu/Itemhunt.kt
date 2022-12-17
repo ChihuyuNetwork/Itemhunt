@@ -8,6 +8,7 @@ import love.chihuyu.config.ConfigKeys
 import love.chihuyu.data.PlayerData
 import love.chihuyu.data.TargetItem
 import love.chihuyu.utils.*
+import net.kyori.adventure.text.Component
 import org.bukkit.*
 import org.bukkit.enchantments.Enchantment
 import org.bukkit.entity.Player
@@ -21,9 +22,7 @@ import org.bukkit.event.entity.FoodLevelChangeEvent
 import org.bukkit.event.entity.PlayerDeathEvent
 import org.bukkit.event.inventory.InventoryClickEvent
 import org.bukkit.event.inventory.InventoryCloseEvent
-import org.bukkit.event.inventory.InventoryType
 import org.bukkit.event.player.*
-import org.bukkit.inventory.InventoryHolder
 import org.bukkit.inventory.ItemFlag
 import org.bukkit.inventory.ItemStack
 import org.bukkit.plugin.java.JavaPlugin
@@ -118,10 +117,10 @@ class Itemhunt : JavaPlugin(), Listener {
 
         if ((action != Action.RIGHT_CLICK_AIR && action != Action.RIGHT_CLICK_BLOCK) || item != POINT_HOPPER) return
 
-        val holder = InventoryHolder { Bukkit.createInventory(null, InventoryType.DROPPER, "ポイント・ホッパー") }
-
-        PlayerData.invData[player.uniqueId] = holder
-        player.openInventory(holder.inventory)
+        /*
+        java.lang.ClassCastException: class org.bukkit.craftbukkit.v1_19_R2.block.CraftBlockState cannot be cast to class io.papermc.paper.block.LockableTileState
+         */
+        player.openInventory(Bukkit.createInventory(null, 9, Component.text("ポイント・ホッパー")))
     }
 
     @EventHandler
