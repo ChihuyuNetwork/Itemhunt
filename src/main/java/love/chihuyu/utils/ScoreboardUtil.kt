@@ -7,8 +7,6 @@ import love.chihuyu.Itemhunt.Companion.translator
 import love.chihuyu.data.PlayerData
 import love.chihuyu.data.TargetItem
 import org.bukkit.ChatColor
-import org.bukkit.craftbukkit.v1_19_R1.inventory.CraftItemStack
-import org.bukkit.inventory.ItemStack
 import org.bukkit.scoreboard.DisplaySlot
 import org.bukkit.scoreboard.Objective
 import org.bukkit.scoreboard.RenderType
@@ -70,12 +68,11 @@ object ScoreboardUtil {
             "  "
         )
 
-        TargetItem.activeTarget.forEachIndexed { index, material ->
-            val craftItemStack = CraftItemStack.asNMSCopy(ItemStack(material!!))
+        TargetItem.activeTarget.filterNotNull().forEachIndexed { index, material ->
             val jpPlayer =
                 plugin.server.onlinePlayers.firstOrNull { it.locale == "ja_jp" } ?: plugin.server.onlinePlayers.random()
             val translated =
-                translator.getTranslationFor(jpPlayer, TranslationKey.of(craftItemStack.p())).colour().first()
+                translator.getTranslationFor(jpPlayer, TranslationKey.of(material.translationKey())).colour().first()
             val point = TargetDataUtil.getPoint(material)
             scores.add(index + 2, "・$translated ${ChatColor.GRAY}(${point}pt)${ChatColor.RESET}")
         }
