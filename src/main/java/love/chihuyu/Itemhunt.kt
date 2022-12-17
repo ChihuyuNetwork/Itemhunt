@@ -117,9 +117,6 @@ class Itemhunt : JavaPlugin(), Listener {
 
         if ((action != Action.RIGHT_CLICK_AIR && action != Action.RIGHT_CLICK_BLOCK) || item != POINT_HOPPER) return
 
-        /*
-        java.lang.ClassCastException: class org.bukkit.craftbukkit.v1_19_R2.block.CraftBlockState cannot be cast to class io.papermc.paper.block.LockableTileState
-         */
         player.openInventory(Bukkit.createInventory(null, 9, Component.text("ポイント・ホッパー")))
     }
 
