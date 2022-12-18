@@ -218,7 +218,7 @@ object ItemhuntSettings {
             }
         )
 
-    val main = CommandAPICommand("settings")
+    val main: CommandAPICommand = CommandAPICommand("settings")
         .withSubcommands(
             setMaterials,
             getMaterials,

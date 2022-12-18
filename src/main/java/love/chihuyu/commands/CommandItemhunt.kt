@@ -4,7 +4,7 @@ import dev.jorel.commandapi.CommandAPICommand
 import dev.jorel.commandapi.CommandPermission
 
 object CommandItemhunt {
-    val main = CommandAPICommand("itemhunt")
+    val main: CommandAPICommand = CommandAPICommand("itemhunt")
         .withSubcommands(
             ItemhuntStart.main,
             ItemhuntImport.main,

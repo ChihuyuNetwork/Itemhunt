@@ -5,8 +5,8 @@ import dev.jorel.commandapi.executors.PlayerCommandExecutor
 
 object CommandSuicide {
 
-    val main = CommandAPICommand("suicide")
-        .executesPlayer(PlayerCommandExecutor { sender, args ->
+    val main: CommandAPICommand = CommandAPICommand("suicide")
+        .executesPlayer(PlayerCommandExecutor { sender, _ ->
             sender.health = .0
         })
 }

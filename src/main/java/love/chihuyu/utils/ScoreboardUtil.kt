@@ -81,7 +81,7 @@ object ScoreboardUtil {
             objTarget.getScore(s).score = scores.lastIndex - index
 
             plugin.server.onlinePlayers.forEach { player ->
-                objRanking.getScore(player).score = PlayerData.data[player.uniqueId]?.values?.sum() ?: 0
+                objRanking.getScore(player).score = PlayerData.points[player.uniqueId]?.values?.sum() ?: 0
                 player.scoreboard = board
             }
         }
