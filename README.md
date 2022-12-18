@@ -30,9 +30,9 @@ targets.ymlからポイントのデータをインポートします
   * `keep_inventory`  
   インベントリ保持の有無を設定します  
   ゲームルールではそのワールドにしか適用されないので、別に作りました
-  * `teleport_after_start`
+  * `teleport_after_start`  
   スタートした直後にホストにテレポートするかどうか指定します
-  * `clear_item`
+  * `clear_item`  
   スタートするときに自動でアイテムを消去するかどうか指定します
 
 * `/ih createworld`  
