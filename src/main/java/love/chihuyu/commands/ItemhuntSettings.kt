@@ -15,7 +15,7 @@ object ItemhuntSettings {
 
     private val setMaterials: CommandAPICommand = CommandAPICommand("materials")
         .withArguments(
-            ListArgumentBuilder<String>("出現する目標アイテム").allowDuplicates(false).withList(TargetItem.data.keys).withStringMapper().build()
+            ListArgumentBuilder<String>("出現する目標アイテム").allowDuplicates(false).withList(TargetItem.data.keys).withStringMapper().buildGreedy()
         )
         .executes(
             CommandExecutor { sender, args ->
@@ -28,7 +28,7 @@ object ItemhuntSettings {
 
     private val getMaterials: CommandAPICommand = CommandAPICommand(ConfigKeys.MATERIALS.key)
         .executes(
-            CommandExecutor { sender, args ->
+            CommandExecutor { sender, _ ->
                 val list = plugin.config.getList(ConfigKeys.MATERIALS.key)
                 if (list == null) {
                     sender.sendMessage("$prefix 未設定の項目です")
@@ -53,7 +53,7 @@ object ItemhuntSettings {
 
     private val getTargets: CommandAPICommand = CommandAPICommand(ConfigKeys.TARGETS.key)
         .executes(
-            CommandExecutor { sender, args ->
+            CommandExecutor { sender, _ ->
                 val value = plugin.config.getInt(ConfigKeys.TARGETS.key)
                 if (value == 0) {
                     sender.sendMessage("$prefix 未設定の項目です")
@@ -78,7 +78,7 @@ object ItemhuntSettings {
 
     private val getPhaseTime: CommandAPICommand = CommandAPICommand(ConfigKeys.PHASE_TIME.key)
         .executes(
-            CommandExecutor { sender, args ->
+            CommandExecutor { sender, _ ->
                 val value = plugin.config.getLong(ConfigKeys.PHASE_TIME.key)
                 if (value == 0L) {
                     sender.sendMessage("$prefix 未設定の項目です")
@@ -103,7 +103,7 @@ object ItemhuntSettings {
 
     private val getPhases: CommandAPICommand = CommandAPICommand(ConfigKeys.PHASES.key)
         .executes(
-            CommandExecutor { sender, args ->
+            CommandExecutor { sender, _ ->
                 val value = plugin.config.getInt(ConfigKeys.PHASES.key)
                 if (value == 0) {
                     sender.sendMessage("$prefix 未設定の項目です")
@@ -128,7 +128,7 @@ object ItemhuntSettings {
 
     private val getPvp: CommandAPICommand = CommandAPICommand(ConfigKeys.PVP.key)
         .executes(
-            CommandExecutor { sender, args ->
+            CommandExecutor { sender, _ ->
                 val value = plugin.config.getBoolean(ConfigKeys.PVP.key)
                 sender.sendMessage("$prefix PvPは${value}です")
             }
@@ -149,7 +149,7 @@ object ItemhuntSettings {
 
     private val getNightVision: CommandAPICommand = CommandAPICommand(ConfigKeys.NIGHT_VISION.key)
         .executes(
-            CommandExecutor { sender, args ->
+            CommandExecutor { sender, _ ->
                 val value = plugin.config.getBoolean(ConfigKeys.NIGHT_VISION.key)
                 sender.sendMessage("$prefix 暗視効果は${value}です")
             }
@@ -170,7 +170,7 @@ object ItemhuntSettings {
 
     private val getKeepInventory: CommandAPICommand = CommandAPICommand(ConfigKeys.KEEP_INVENTORY.key)
         .executes(
-            CommandExecutor { sender, args ->
+            CommandExecutor { sender, _ ->
                 val value = plugin.config.getBoolean(ConfigKeys.KEEP_INVENTORY.key)
                 sender.sendMessage("$prefix インベントリ保持は${value}です")
             }
@@ -191,7 +191,7 @@ object ItemhuntSettings {
 
     private val getTpAfterStart: CommandAPICommand = CommandAPICommand(ConfigKeys.TP_AFTER_START.key)
         .executes(
-            CommandExecutor { sender, args ->
+            CommandExecutor { sender, _ ->
                 val value = plugin.config.getBoolean(ConfigKeys.TP_AFTER_START.key)
                 sender.sendMessage("$prefix インベントリ保持は${value}です")
             }
@@ -212,7 +212,7 @@ object ItemhuntSettings {
 
     private val getClearItem: CommandAPICommand = CommandAPICommand(ConfigKeys.CLEAR_ITEM.key)
         .executes(
-            CommandExecutor { sender, args ->
+            CommandExecutor { sender, _ ->
                 val value = plugin.config.getBoolean(ConfigKeys.TP_AFTER_START.key)
                 sender.sendMessage("$prefix アイテム消去は${value}です")
             }

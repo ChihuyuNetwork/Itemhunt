@@ -1,6 +1,7 @@
 package love.chihuyu.utils
 
 import love.chihuyu.Itemhunt
+import net.kyori.adventure.text.Component
 import org.bukkit.Material
 import org.bukkit.attribute.Attribute
 import org.bukkit.attribute.AttributeModifier
@@ -14,7 +15,6 @@ object ItemUtil {
     fun create(
         material: Material,
         name: String? = null,
-        localizedName: String? = null,
         amount: Int? = null,
         customModelData: Int? = null,
         lore: List<String>? = null,
@@ -27,10 +27,9 @@ object ItemUtil {
         if (amount != null) item.amount = amount
 
         val meta = item.itemMeta ?: return item
-        if (name != null) meta.setDisplayName(name)
-        if (localizedName != null) meta.setLocalizedName(localizedName)
+        if (name != null) meta.displayName(Component.text(name))
         if (unbreakable != null) meta.isUnbreakable = unbreakable
-        if (lore != null) meta.lore = lore
+        if (lore != null) meta.lore(lore.map { Component.text(it) })
         if (customModelData != null) meta.setCustomModelData(customModelData)
 
         attributeModifier?.forEach { meta.addAttributeModifier(it.key, it.value) }

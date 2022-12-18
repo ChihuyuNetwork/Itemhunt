@@ -5,10 +5,13 @@ import com.convallyria.languagy.api.language.Translator
 import love.chihuyu.commands.CommandItemhunt
 import love.chihuyu.commands.CommandSuicide
 import love.chihuyu.config.ConfigKeys
+import love.chihuyu.data.PhaseData
 import love.chihuyu.data.PlayerData
 import love.chihuyu.data.TargetItem
 import love.chihuyu.utils.*
 import net.kyori.adventure.text.Component
+import net.kyori.adventure.text.format.Style
+import net.kyori.adventure.text.format.TextDecoration
 import org.bukkit.*
 import org.bukkit.enchantments.Enchantment
 import org.bukkit.entity.Player
@@ -22,6 +25,7 @@ import org.bukkit.event.entity.FoodLevelChangeEvent
 import org.bukkit.event.entity.PlayerDeathEvent
 import org.bukkit.event.inventory.InventoryClickEvent
 import org.bukkit.event.inventory.InventoryCloseEvent
+import org.bukkit.event.inventory.InventoryType
 import org.bukkit.event.player.*
 import org.bukkit.inventory.ItemFlag
 import org.bukkit.inventory.ItemStack
@@ -40,7 +44,7 @@ class Itemhunt : JavaPlugin(), Listener {
         val prefix = "${ChatColor.GOLD}[IH]${ChatColor.RESET}"
         val POINT_HOPPER = ItemStack(Material.NETHER_STAR).apply {
             val meta = this.itemMeta ?: return@apply
-            meta.setDisplayName("ポイント・ホッパー")
+            meta.displayName(Component.text("ポイント・ホッパー").style(Style.style(TextDecoration.BOLD)))
             meta.addItemFlags(ItemFlag.HIDE_ATTRIBUTES, ItemFlag.HIDE_ENCHANTS)
             meta.setCustomModelData(1)
 
@@ -95,7 +99,7 @@ class Itemhunt : JavaPlugin(), Listener {
         val player = e.player
 
         BossbarUtil.removeBossbar("bruh")
-        PlayerData.data.putIfAbsent(e.player.uniqueId, mutableMapOf())
+        PlayerData.init(player)
         ScoreboardUtil.updateServerScoreboard()
 
         ItemUtil.addPointHopperIfHavent(player)
@@ -138,11 +142,15 @@ class Itemhunt : JavaPlugin(), Listener {
             clicked.contents.filterNotNull().forEach { clicked ->
                 if (clicked.type !in TargetItem.activeTarget) return@forEach
 
-                PlayerData.data[player.uniqueId]?.set(
-                    clicked.type,
-                    (PlayerData.data[player.uniqueId]?.get(clicked.type) ?: 0) +
-                        (TargetDataUtil.getPoint(clicked.type) ?: 0) * clicked.amount
-                )
+                PlayerData.points[player.uniqueId]?.get(PhaseData.elapsedPhases.dec())
+                    ?.set(
+                        clicked.type,
+                        (
+                            PlayerData.points[player.uniqueId]?.getOrNull(PhaseData.elapsedPhases.dec())?.getOrPut(clicked.type) { 0 }
+                                ?: 0
+                            ) +
+                            (TargetDataUtil.getPoint(clicked.type) ?: 0) * clicked.amount
+                    )
 
                 // remove item
                 clicked.amount = 0
@@ -151,6 +159,8 @@ class Itemhunt : JavaPlugin(), Listener {
 
             ScoreboardUtil.updateServerScoreboard()
         }
+
+        logger.info(PlayerData.points.toString())
     }
 
     @EventHandler
@@ -158,7 +168,7 @@ class Itemhunt : JavaPlugin(), Listener {
         val player = e.player as Player
         val inv = e.inventory
 
-        if (inv.size != 9 || inv.isEmpty) return
+        if (inv.size != 9 || inv.isEmpty || inv.type == InventoryType.CHEST) return
 
         player.playSound(player, Sound.ENTITY_ITEM_PICKUP, 1f, 1f)
 

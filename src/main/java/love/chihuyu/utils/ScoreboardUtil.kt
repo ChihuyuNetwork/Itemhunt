@@ -4,23 +4,27 @@ import com.convallyria.languagy.api.language.key.TranslationKey
 import love.chihuyu.Itemhunt.Companion.plugin
 import love.chihuyu.Itemhunt.Companion.started
 import love.chihuyu.Itemhunt.Companion.translator
+import love.chihuyu.data.PhaseData
 import love.chihuyu.data.PlayerData
 import love.chihuyu.data.TargetItem
+import net.kyori.adventure.text.Component
 import org.bukkit.ChatColor
+import org.bukkit.scoreboard.Criteria
 import org.bukkit.scoreboard.DisplaySlot
 import org.bukkit.scoreboard.Objective
 import org.bukkit.scoreboard.RenderType
+import java.util.*
 
 object ScoreboardUtil {
 
     fun updateServerScoreboard() {
-        val board = plugin.server.scoreboardManager!!.mainScoreboard
+        val board = plugin.server.scoreboardManager.mainScoreboard
         board.objectives.forEach(Objective::unregister)
 
         val objTarget = board.registerNewObjective(
             "main",
-            "",
-            "   ${ChatColor.GOLD}${ChatColor.UNDERLINE}${ChatColor.BOLD}Item Hunt${ChatColor.RESET}   "
+            Criteria.DUMMY,
+            Component.text("   ${ChatColor.GOLD}${ChatColor.UNDERLINE}${ChatColor.BOLD}Item Hunt${ChatColor.RESET}   ")
         ).apply {
             this.displaySlot = DisplaySlot.SIDEBAR
             this.renderType = RenderType.INTEGER
@@ -28,8 +32,8 @@ object ScoreboardUtil {
 
         val objRanking = board.registerNewObjective(
             "ranking",
-            ",",
-            ""
+            Criteria.DUMMY,
+            Component.empty()
         ).apply {
             this.displaySlot = DisplaySlot.PLAYER_LIST
         }
@@ -39,8 +43,8 @@ object ScoreboardUtil {
 
             val objWaiting = board.registerNewObjective(
                 "main",
-                "",
-                "   ${ChatColor.GOLD}${ChatColor.UNDERLINE}${ChatColor.BOLD}Item Hunt${ChatColor.RESET}   ",
+                Criteria.DUMMY,
+                Component.text("   ${ChatColor.GOLD}${ChatColor.UNDERLINE}${ChatColor.BOLD}Item Hunt${ChatColor.RESET}   "),
                 RenderType.INTEGER
             ).apply {
                 this.displaySlot = DisplaySlot.SIDEBAR
@@ -70,7 +74,7 @@ object ScoreboardUtil {
 
         TargetItem.activeTarget.filterNotNull().forEachIndexed { index, material ->
             val jpPlayer =
-                plugin.server.onlinePlayers.firstOrNull { it.locale == "ja_jp" } ?: plugin.server.onlinePlayers.random()
+                plugin.server.onlinePlayers.firstOrNull { it.locale() == Locale.JAPAN } ?: plugin.server.onlinePlayers.random()
             val translated =
                 translator.getTranslationFor(jpPlayer, TranslationKey.of(material.translationKey())).colour().first()
             val point = TargetDataUtil.getPoint(material)
@@ -81,7 +85,7 @@ object ScoreboardUtil {
             objTarget.getScore(s).score = scores.lastIndex - index
 
             plugin.server.onlinePlayers.forEach { player ->
-                objRanking.getScore(player).score = PlayerData.points[player.uniqueId]?.values?.sum() ?: 0
+                objRanking.getScore(player).score = PlayerData.points[player.uniqueId]?.getOrNull(PhaseData.elapsedPhases.dec())?.values?.sum() ?: 0
                 player.scoreboard = board
             }
         }

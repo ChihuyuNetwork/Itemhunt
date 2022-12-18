@@ -9,7 +9,7 @@ object ItemhuntImport {
 
     val main: CommandAPICommand = CommandAPICommand("import")
         .executes(
-            CommandExecutor { sender, args ->
+            CommandExecutor { sender, _ ->
                 sender.sendMessage("Import target item datas(${measureTimeMillis { TargetDataUtil.import() }}ms).")
             }
         )

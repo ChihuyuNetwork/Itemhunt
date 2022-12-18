@@ -13,16 +13,20 @@ import love.chihuyu.utils.*
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.event.HoverEvent
 import net.kyori.adventure.text.event.HoverEventSource
-import org.bukkit.*
+import org.bukkit.Bukkit
+import org.bukkit.ChatColor
+import org.bukkit.GameRule
+import org.bukkit.Sound
 import org.bukkit.potion.PotionEffect
 import org.bukkit.potion.PotionEffectType
 
 object ItemhuntStart {
 
-    val main: CommandAPICommand = CommandAPICommand("start").executesPlayer(PlayerCommandExecutor { sender, args ->
+    val main: CommandAPICommand = CommandAPICommand("start").executesPlayer(
+        PlayerCommandExecutor { sender, _ ->
             val phases = plugin.config.getInt(ConfigKeys.PHASES.key)
             val secondsPerPhase = plugin.config.getLong(ConfigKeys.PHASE_TIME.key)
-            val materials = plugin.config.getList(ConfigKeys.MATERIALS.key)
+            val materialCategories = plugin.config.getList(ConfigKeys.MATERIALS.key)
             val targets = plugin.config.getInt(ConfigKeys.TARGETS.key)
             val nightVision = plugin.config.getBoolean(ConfigKeys.NIGHT_VISION.key)
             val keepInventory = plugin.config.getBoolean(ConfigKeys.KEEP_INVENTORY.key)
@@ -33,29 +37,37 @@ object ItemhuntStart {
 
             fun onGameStart() {
                 plugin.server.onlinePlayers.forEach { player ->
-                    player.gameMode = GameMode.SURVIVAL
+                    PlayerData.internalPhases = phases
+                    PlayerData.init(player)
                     ItemUtil.addPointHopperIfHavent(player)
+
+                    if (tpAfterStart) player.teleport(sender.location)
                     if (nightVision) player.addPotionEffect(
                         PotionEffect(
-                            PotionEffectType.NIGHT_VISION, Int.MAX_VALUE, 0, false, false, true
+                            PotionEffectType.NIGHT_VISION,
+                            Int.MAX_VALUE,
+                            0,
+                            false,
+                            false,
+                            false
                         )
                     )
-                    if (tpAfterStart) player.teleport(sender.location)
-                    plugin.server.worlds.forEach { world ->
-                        world.setGameRule(
-                            GameRule.KEEP_INVENTORY, keepInventory
-                        )
-                    }
                 }
 
-                plugin.server.broadcastMessage(
-                    """
+                plugin.server.worlds.forEach { world ->
+                    world.setGameRule(GameRule.KEEP_INVENTORY, keepInventory)
+                }
+
+                plugin.server.broadcast(
+                    Component.text(
+                        """
                         ${ChatColor.GOLD}${ChatColor.STRIKETHROUGH}${ChatColor.BOLD}${" ".repeat(42)}${ChatColor.RESET}
                         ${" ".repeat(1)}
                         アイテムハント開始！
                         ${" ".repeat(2)}
                         ${ChatColor.GOLD}${ChatColor.STRIKETHROUGH}${ChatColor.BOLD}${" ".repeat(42)}${ChatColor.RESET}
                         """.trimIndent()
+                    )
                 )
             }
 
@@ -64,51 +76,47 @@ object ItemhuntStart {
                 PhaseData.elapsedPhases = 0
                 Itemhunt.started = false
 
-                val sortedPhasesData = PlayerData.phases.toList().sortedByDescending { it.second }
+                val sortedPhasesData = PlayerData.phases.toList()
+                    .sortedByDescending { it.second }
+                    .filterNot { it.second == 0 }
                 val sortedPointsData = PlayerData.points.toList()
                     .sortedByDescending { it.second.sumOf { phase -> phase.values.sum() } }
                     .filterNot { it.second.sumOf { phase -> phase.values.sum() } == 0 }
 
                 plugin.server.onlinePlayers.forEach { player ->
                     val yourRank = sortedPhasesData.map { it.first }.indexOf(player.uniqueId).inc()
-                    player.sendMessage(Component.text(
-                        """
-                                ${ChatColor.GOLD}${ChatColor.STRIKETHROUGH}${ChatColor.BOLD}${" ".repeat(42)}${ChatColor.RESET}
-                                    ${
-                            if (sortedPhasesData.isNotEmpty()) {
-                                """
-                                アイテムハント終了！
-                                勝者は${ChatColor.BOLD}${Bukkit.getOfflinePlayer(sortedPhasesData[0].first).name}${ChatColor.RESET}です
-                                あなたは${if (yourRank == 0) "圏外" else "${yourRank}位"}でした
-                                """
-                            } else {
-                                """
-                                アイテムハント終了！
-                                勝者はいませんでした！
-                                """
+                    val winner = if (sortedPhasesData.isNotEmpty()) {
+                        "\n勝者は${ChatColor.BOLD}${Bukkit.getOfflinePlayer(sortedPhasesData[0].first).name}${ChatColor.RESET}です" +
+                            "\nあなたは${if (yourRank == 0) "圏外" else "${yourRank}位"}でした"
+                    } else {
+                        "\n勝者はいませんでした"
+                    }
+
+                    val resultMsg = "${ChatColor.GOLD}${ChatColor.STRIKETHROUGH}${ChatColor.BOLD}${" ".repeat(42)}${ChatColor.RESET}" +
+                        "\nアイテムハント終了！" +
+                        "\n$winner" +
+                        "\n${ChatColor.GOLD}${ChatColor.STRIKETHROUGH}${ChatColor.BOLD}${" ".repeat(42)}${ChatColor.RESET}"
+
+                    player.sendMessage(Component.text(resultMsg))
+
+                    player.sendMessage(
+                        Component.text("${ChatColor.UNDERLINE}ここにカーソルを合わせるとランキングが表示されます").hoverEvent(
+                            HoverEventSource {
+                                HoverEvent.showText(
+                                    Component.text(
+                                        sortedPhasesData.joinToString("\n") {
+                                            "#${sortedPhasesData.indexOf(it).inc()}" +
+                                                "${Bukkit.getOfflinePlayer(it.first).name}" +
+                                                "${it.second}勝利" +
+                                                "(${sortedPointsData.firstOrNull { p -> p.first == it.first }?.second?.sumOf { phase -> phase.values.sum() } ?: 0}pt)"
+                                        }
+                                    )
+                                )
                             }
-                        }
-                                ${ChatColor.GOLD}${ChatColor.STRIKETHROUGH}${ChatColor.BOLD}${" ".repeat(42)}${ChatColor.RESET}
-                                """.trimIndent()
-                    ).apply endMessage@{
-                        val hoverEvent = HoverEventSource {
-                            HoverEvent.showText(Component.text(sortedPhasesData.joinToString(
-                                "\n"
-                            ) {
-                                "#${
-                                    sortedPhasesData.indexOf(it).inc()
-                                } ${Bukkit.getOfflinePlayer(it.first).name} ${it.second}Win(${
-                                    sortedPointsData.first { p -> p.first == it.first }.second.sumOf { phase -> phase.values.sum() }
-                                }pt)"
-                            }))
-                        }
-                        val textComponent = Component.text("${ChatColor.UNDERLINE}ここにカーソルを合わせるとランキングが表示されます")
-                            .apply { this.hoverEvent(hoverEvent) }
-                        this@endMessage.append(textComponent)
-                    })
+                        )
+                    )
 
                     player.playSound(player, Sound.ENTITY_PLAYER_LEVELUP, .5f, 1f)
-                    player.gameMode = GameMode.ADVENTURE
                     player.removePotionEffect(PotionEffectType.NIGHT_VISION)
                     if (clearItem) player.inventory.clear()
                 }
@@ -123,7 +131,7 @@ object ItemhuntStart {
                 sender.sendMessage("$prefix /ih $key で設定を行ってください")
             }
 
-            if (materials == null) {
+            if (materialCategories == null) {
                 error("materials")
                 return@PlayerCommandExecutor
             }
@@ -155,14 +163,14 @@ object ItemhuntStart {
                 PhaseData.elapsedPhases++
 
                 TargetItem.activeTarget.clear()
-                repeat(targets) {
-                    TargetItem.activeTarget += TargetItem.data.filterKeys {
-                        it in materials.map { material -> material.toString() }
-                    }.values.flatMap { it.keys }.random()
-                }
+                repeat(targets) { TargetItem.activeTarget += TargetItem.data.filterKeys { it in materialCategories }.values.flatMap { it.keys }.random() }
                 ScoreboardUtil.updateServerScoreboard()
 
+                val phaseWinner = PlayerData.points.toList().filter { it.second.flatMap { map -> map.values }.sum() != 0 }.maxBy { it.second.sumOf { phase -> phase.values.sum() } }
+                PlayerData.phases[phaseWinner.first] = PlayerData.phases[phaseWinner.first]?.inc() ?: 1
+
                 plugin.server.onlinePlayers.forEach { player ->
+
                     player.sendMessage("フェーズ${PhaseData.elapsedPhases}開始！")
                     player.playSound(player, Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1f, 1f)
                 }
@@ -174,5 +182,6 @@ object ItemhuntStart {
 
                 onGameEnd()
             }
-        })
+        }
+    )
 }
