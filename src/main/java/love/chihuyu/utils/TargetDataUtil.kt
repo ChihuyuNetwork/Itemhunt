@@ -1,7 +1,7 @@
 package love.chihuyu.utils
 
 import love.chihuyu.Itemhunt.Companion.plugin
-import love.chihuyu.data.TargetItem
+import love.chihuyu.game.TargetItem
 import org.bukkit.Material
 import org.bukkit.configuration.file.YamlConfiguration
 import java.io.File

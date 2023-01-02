@@ -1,4 +1,4 @@
-package love.chihuyu.data
+package love.chihuyu.game
 
 object PhaseData {
 

@@ -1,7 +1,7 @@
 package love.chihuyu.utils
 
 import love.chihuyu.Itemhunt.Companion.plugin
-import love.chihuyu.data.PhaseData
+import love.chihuyu.game.PhaseData
 import org.bukkit.Bukkit
 import org.bukkit.NamespacedKey
 import org.bukkit.Sound

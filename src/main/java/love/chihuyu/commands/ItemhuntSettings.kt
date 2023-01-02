@@ -9,7 +9,7 @@ import dev.jorel.commandapi.executors.CommandExecutor
 import love.chihuyu.Itemhunt.Companion.plugin
 import love.chihuyu.Itemhunt.Companion.prefix
 import love.chihuyu.config.ConfigKeys
-import love.chihuyu.data.TargetItem
+import love.chihuyu.game.TargetItem
 
 object ItemhuntSettings {
 

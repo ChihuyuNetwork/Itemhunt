@@ -5,9 +5,3 @@ authors: [ Hirosuke ]
 depend: [CommandAPI]
 api-version: 1.19
 permissions:
-  treasurehunt.*:
-    default: op
-    children:
-      startitemhunt: true
-  treasurehunt.startitemhunt:
-    default: op

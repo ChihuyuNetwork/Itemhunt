@@ -5,9 +5,11 @@ import com.convallyria.languagy.api.language.Translator
 import love.chihuyu.commands.CommandItemhunt
 import love.chihuyu.commands.CommandSuicide
 import love.chihuyu.config.ConfigKeys
-import love.chihuyu.data.PhaseData
-import love.chihuyu.data.PlayerData
-import love.chihuyu.data.TargetItem
+import love.chihuyu.game.GameManager
+import love.chihuyu.game.GameManager.started
+import love.chihuyu.game.PhaseData
+import love.chihuyu.game.PlayerData
+import love.chihuyu.game.TargetItem
 import love.chihuyu.utils.*
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.format.Style
@@ -40,7 +42,6 @@ class Itemhunt : JavaPlugin(), Listener {
         lateinit var plugin: JavaPlugin
         lateinit var translator: Translator
         lateinit var mainWorld: World
-        var started: Boolean = false
         val prefix = "${ChatColor.GOLD}[IH]${ChatColor.RESET}"
         val POINT_HOPPER = ItemStack(Material.NETHER_STAR).apply {
             val meta = this.itemMeta ?: return@apply
@@ -99,7 +100,7 @@ class Itemhunt : JavaPlugin(), Listener {
         val player = e.player
 
         BossbarUtil.removeBossbar("bruh")
-        PlayerData.init(player)
+        PlayerData.init(player, GameManager.phases)
         ScoreboardUtil.updateServerScoreboard()
 
         ItemUtil.addPointHopperIfHavent(player)
@@ -159,8 +160,6 @@ class Itemhunt : JavaPlugin(), Listener {
 
             ScoreboardUtil.updateServerScoreboard()
         }
-
-        logger.info(PlayerData.points.toString())
     }
 
     @EventHandler
@@ -168,7 +167,7 @@ class Itemhunt : JavaPlugin(), Listener {
         val player = e.player as Player
         val inv = e.inventory
 
-        if (inv.size != 9 || inv.isEmpty || inv.type == InventoryType.CHEST) return
+        if (inv.size != 9 || inv.isEmpty || inv.type != InventoryType.CHEST) return
 
         player.playSound(player, Sound.ENTITY_ITEM_PICKUP, 1f, 1f)
 

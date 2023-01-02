@@ -2,11 +2,11 @@ package love.chihuyu.utils
 
 import com.convallyria.languagy.api.language.key.TranslationKey
 import love.chihuyu.Itemhunt.Companion.plugin
-import love.chihuyu.Itemhunt.Companion.started
 import love.chihuyu.Itemhunt.Companion.translator
-import love.chihuyu.data.PhaseData
-import love.chihuyu.data.PlayerData
-import love.chihuyu.data.TargetItem
+import love.chihuyu.game.GameManager
+import love.chihuyu.game.PhaseData
+import love.chihuyu.game.PlayerData
+import love.chihuyu.game.TargetItem
 import net.kyori.adventure.text.Component
 import org.bukkit.ChatColor
 import org.bukkit.scoreboard.Criteria
@@ -18,10 +18,9 @@ import java.util.*
 object ScoreboardUtil {
 
     fun updateServerScoreboard() {
-        val board = plugin.server.scoreboardManager.mainScoreboard
-        board.objectives.forEach(Objective::unregister)
+        GameManager.board.objectives.forEach(Objective::unregister)
 
-        val objTarget = board.registerNewObjective(
+        val objTarget = GameManager.board.registerNewObjective(
             "main",
             Criteria.DUMMY,
             Component.text("   ${ChatColor.GOLD}${ChatColor.UNDERLINE}${ChatColor.BOLD}Item Hunt${ChatColor.RESET}   ")
@@ -30,7 +29,7 @@ object ScoreboardUtil {
             this.renderType = RenderType.INTEGER
         }
 
-        val objRanking = board.registerNewObjective(
+        val objRanking = GameManager.board.registerNewObjective(
             "ranking",
             Criteria.DUMMY,
             Component.empty()
@@ -38,10 +37,10 @@ object ScoreboardUtil {
             this.displaySlot = DisplaySlot.PLAYER_LIST
         }
 
-        if (!started) {
+        if (!GameManager.started) {
             objTarget.unregister()
 
-            val objWaiting = board.registerNewObjective(
+            val objWaiting = GameManager.board.registerNewObjective(
                 "main",
                 Criteria.DUMMY,
                 Component.text("   ${ChatColor.GOLD}${ChatColor.UNDERLINE}${ChatColor.BOLD}Item Hunt${ChatColor.RESET}   "),
@@ -62,7 +61,7 @@ object ScoreboardUtil {
 
             objRanking.unregister()
 
-            plugin.server.onlinePlayers.forEach { player -> player.scoreboard = board }
+            plugin.server.onlinePlayers.forEach { player -> player.scoreboard = GameManager.board }
             return
         }
 
@@ -86,7 +85,7 @@ object ScoreboardUtil {
 
             plugin.server.onlinePlayers.forEach { player ->
                 objRanking.getScore(player).score = PlayerData.points[player.uniqueId]?.getOrNull(PhaseData.elapsedPhases.dec())?.values?.sum() ?: 0
-                player.scoreboard = board
+                player.scoreboard = GameManager.board
             }
         }
     }
