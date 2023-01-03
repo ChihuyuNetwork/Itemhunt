@@ -6,12 +6,12 @@ import java.util.*
 
 object PlayerData {
 
-    val points = mutableMapOf<UUID, MutableList<MutableMap<Material, Int>>>()
+    val points = mutableMapOf<UUID, MutableMap<Material, Int>>()
     val wonPhases = mutableMapOf<UUID, Int>()
 
     fun init(player: Player, phases: Int) {
-        points[player.uniqueId] = mutableListOf()
-        repeat(phases) { points[player.uniqueId]?.add(mutableMapOf()) }
+        points[player.uniqueId] = mutableMapOf()
+        repeat(phases) { points[player.uniqueId] = mutableMapOf() }
         this.wonPhases[player.uniqueId] = 0
     }
 }

@@ -9,7 +9,6 @@ import love.chihuyu.Itemhunt.Companion.prefix
 import love.chihuyu.config.ConfigKeys
 import love.chihuyu.game.GameManager
 import love.chihuyu.game.TimePresets
-import love.chihuyu.utils.EpochUtil
 
 object ItemhuntStart {
 
@@ -23,20 +22,12 @@ object ItemhuntStart {
         )
         .executesPlayer(
             PlayerCommandExecutor { sender, args ->
-                val startedEpoch = EpochUtil.nowEpoch()
                 val timePresets = try {
                     TimePresets.valueOf(args[0] as String)
                 } catch (e: IllegalArgumentException) {
                     sender.sendMessage("$prefix 無効な時間指定です")
                     return@PlayerCommandExecutor
                 }
-                val materialCategories = plugin.config.getStringList(ConfigKeys.MATERIALS.key)!!
-                val targets = plugin.config.getInt(ConfigKeys.TARGETS.key)
-                val gameFinishEpoch = startedEpoch + timePresets.seconds
-                val clearItem = plugin.config.getBoolean(ConfigKeys.CLEAR_ITEM.key)
-                val nightVision = plugin.config.getBoolean(ConfigKeys.NIGHT_VISION.key)
-                val keepInventory = plugin.config.getBoolean(ConfigKeys.KEEP_INVENTORY.key)
-                val tpAfterStart = plugin.config.getBoolean(ConfigKeys.TP_AFTER_START.key)
 
                 fun error(key: String) {
                     sender.sendMessage("$prefix ${key}が未設定です")
@@ -53,28 +44,15 @@ object ItemhuntStart {
                     return@PlayerCommandExecutor
                 }
 
-                if (plugin.config.getLong(ConfigKeys.PHASE_TIME.key) == 0L) {
-                    error("phase_time")
-                    return@PlayerCommandExecutor
-                }
-
-                if (plugin.config.getInt(ConfigKeys.PHASES.key) == 0) {
-                    error("phases")
-                    return@PlayerCommandExecutor
-                }
-
-                GameManager.startedEpoch = startedEpoch
-                GameManager.phases = timePresets.seconds.toInt() / 300
-                GameManager.secondsPerPhase = 300
-                GameManager.materialCategories = materialCategories
-                GameManager.targets = targets
-                GameManager.gameFinishEpoch = gameFinishEpoch
-                GameManager.clearItem = clearItem
-                GameManager.nightVision = nightVision
-                GameManager.keepInventory = keepInventory
-                GameManager.tpAfterStart = tpAfterStart
-
-                GameManager.prepare()
+                GameManager.prepare(
+                    plugin.config.getStringList(ConfigKeys.MATERIALS.key),
+                    plugin.config.getInt(ConfigKeys.TARGETS.key),
+                    plugin.config.getBoolean(ConfigKeys.CLEAR_ITEM.key),
+                    plugin.config.getBoolean(ConfigKeys.NIGHT_VISION.key),
+                    plugin.config.getBoolean(ConfigKeys.KEEP_INVENTORY.key),
+                    plugin.config.getBoolean(ConfigKeys.TP_AFTER_START.key),
+                    timePresets
+                )
             }
         )
 }

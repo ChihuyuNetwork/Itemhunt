@@ -5,9 +5,9 @@ import com.convallyria.languagy.api.language.Translator
 import love.chihuyu.commands.CommandItemhunt
 import love.chihuyu.commands.CommandSuicide
 import love.chihuyu.config.ConfigKeys
+import love.chihuyu.game.EventCanceller
 import love.chihuyu.game.GameManager
 import love.chihuyu.game.GameManager.started
-import love.chihuyu.game.PhaseData
 import love.chihuyu.game.PlayerData
 import love.chihuyu.game.TargetItem
 import love.chihuyu.utils.*
@@ -67,6 +67,7 @@ class Itemhunt : JavaPlugin(), Listener {
 
         translator = Translator.of(plugin, Language.JAPANESE).debug(true)
         server.pluginManager.registerEvents(this, this)
+        server.pluginManager.registerEvents(EventCanceller, this)
 
         CommandItemhunt.main.register()
         CommandSuicide.main.register()
@@ -104,7 +105,7 @@ class Itemhunt : JavaPlugin(), Listener {
         ScoreboardUtil.updateServerScoreboard()
 
         ItemUtil.addPointHopperIfHavent(player)
-        player.gameMode = if (started) GameMode.SURVIVAL else GameMode.ADVENTURE
+        player.gameMode = GameMode.SURVIVAL
         player.isInvulnerable = false
         if (!started) player.activePotionEffects.forEach { player.removePotionEffect(it.type) }
     }
@@ -143,23 +144,15 @@ class Itemhunt : JavaPlugin(), Listener {
             clicked.contents.filterNotNull().forEach { clicked ->
                 if (clicked.type !in TargetItem.activeTarget) return@forEach
 
-                PlayerData.points[player.uniqueId]?.get(PhaseData.elapsedPhases.dec())
-                    ?.set(
-                        clicked.type,
-                        (
-                            PlayerData.points[player.uniqueId]?.getOrNull(PhaseData.elapsedPhases.dec())?.getOrPut(clicked.type) { 0 }
-                                ?: 0
-                            ) +
-                            (TargetDataUtil.getPoint(clicked.type) ?: 0) * clicked.amount
-                    )
+                PlayerData.points[player.uniqueId]?.set(clicked.type, (PlayerData.points[player.uniqueId]?.get(clicked.type) ?: 0) + (clicked.amount * (TargetDataUtil.getPoint(clicked.type) ?: 0)))
 
                 // remove item
                 clicked.amount = 0
                 player.playSound(player, Sound.ENTITY_EXPERIENCE_ORB_PICKUP, .8f, 1f)
             }
-
-            ScoreboardUtil.updateServerScoreboard()
         }
+
+        ScoreboardUtil.updateServerScoreboard()
     }
 
     @EventHandler

@@ -5,7 +5,6 @@ import love.chihuyu.utils.*
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.event.HoverEvent
 import net.kyori.adventure.text.event.HoverEventSource
-import net.kyori.adventure.text.format.NamedTextColor
 import net.kyori.adventure.title.Title
 import org.bukkit.Bukkit
 import org.bukkit.ChatColor
@@ -14,26 +13,39 @@ import org.bukkit.Sound
 import org.bukkit.potion.PotionEffect
 import org.bukkit.potion.PotionEffectType
 import java.time.Duration
-import kotlin.properties.Delegates
 
 object GameManager {
+
+    fun sortedPhasesData() = PlayerData.wonPhases.toList()
+        .sortedBy { it.second }
+    fun sortedPointsData() = PlayerData.points.toList()
+        .sortedByDescending { it.second.values.sum() }
+        .filterNot { it.second.values.sum() == 0 }
 
     val board = plugin.server.scoreboardManager.mainScoreboard
 
     var started: Boolean = false
 
-    var startedEpoch by Delegates.notNull<Long>()
-    var phases by Delegates.notNull<Int>()
-    var secondsPerPhase by Delegates.notNull<Long>()
+    var startedEpoch = 0L
+    var phases = 0
+    var secondsPerPhase = 0L
     var materialCategories = mutableListOf<String>()
-    var targets by Delegates.notNull<Int>()
-    var gameFinishEpoch by Delegates.notNull<Long>()
-    var clearItem by Delegates.notNull<Boolean>()
-    var nightVision by Delegates.notNull<Boolean>()
-    var keepInventory by Delegates.notNull<Boolean>()
-    var tpAfterStart by Delegates.notNull<Boolean>()
+    var targets = 0
+    var gameFinishEpoch = 0L
+    var clearItem = false
+    var nightVision = false
+    var keepInventory = false
+    var tpAfterStart = false
 
-    fun prepare() {
+    fun prepare(
+        materialCategories: MutableList<String>,
+        targets: Int,
+        clearItem: Boolean,
+        nightVision: Boolean,
+        keepInventory: Boolean,
+        tpAfterStart: Boolean,
+        timePresets: TimePresets
+    ) {
         var remainCountdown = 5
 
         val taskCountdown = plugin.runTaskTimer(0, 20) {
@@ -47,6 +59,7 @@ object GameManager {
                         )
                     )
                 )
+                it.playSound(it, Sound.UI_BUTTON_CLICK, 1f, 1f)
             }
 
             remainCountdown--
@@ -54,6 +67,17 @@ object GameManager {
 
         val taskStartGame = plugin.runTaskLater(5 * 20) {
             taskCountdown.cancel()
+
+            this@GameManager.startedEpoch = EpochUtil.nowEpoch()
+            this@GameManager.phases = timePresets.seconds.toInt() / 300
+            this@GameManager.secondsPerPhase = 300
+            this@GameManager.materialCategories = materialCategories
+            this@GameManager.targets = targets
+            this@GameManager.gameFinishEpoch = EpochUtil.nowEpoch() + timePresets.seconds
+            this@GameManager.clearItem = clearItem
+            this@GameManager.nightVision = nightVision
+            this@GameManager.keepInventory = keepInventory
+            this@GameManager.tpAfterStart = tpAfterStart
 
             plugin.server.onlinePlayers.forEach { player ->
                 PlayerData.init(player, phases)
@@ -95,10 +119,6 @@ object GameManager {
     fun start() {
         started = true
 
-        val taskTickGame = plugin.runTaskTimer(0, 20) {
-            BossbarUtil.updateBossbar(startedEpoch, secondsPerPhase, phases)
-        }
-
         val taskUpdateActiveItem = plugin.runTaskTimer(0, secondsPerPhase * 20) {
             PhaseData.elapsedPhases++
 
@@ -106,53 +126,22 @@ object GameManager {
             repeat(targets) { TargetItem.activeTarget += TargetItem.data.filterKeys { materialCategories.contains(it) }.values.flatMap { it.keys }.random() }
             ScoreboardUtil.updateServerScoreboard()
 
-            val sortedMaterialPoints = PlayerData.points.toList().sortedByDescending { it.second.sumOf { materialPoint -> materialPoint.values.sum() } }
+            val sortedMaterialPoints = PlayerData.points.toList().sortedByDescending { it.second.toList().sumOf { pair -> pair.second } }
 
             plugin.server.onlinePlayers.forEach { player ->
-                PlayerData.wonPhases[player.uniqueId] =
-                    (PlayerData.wonPhases[player.uniqueId] ?: 0) +
-                    (sortedMaterialPoints.indexOfFirst { it.first == player.uniqueId })
-                val evalBaseInts = listOf(1, 2, 3, 4, 5).map { it * (plugin.server.onlinePlayers.size / 5f) }
-                var nearestPlayerTeamIndex: Float? = 0f
-                evalBaseInts.forEach {
-                    if (PlayerData.wonPhases[player.uniqueId]!!.inc().toFloat() in it..(evalBaseInts[evalBaseInts.indexOf(it).inc() % 5])) {
-                        val before = PlayerData.wonPhases[player.uniqueId]!!.inc().toFloat().compareTo(it)
-                        val after = PlayerData.wonPhases[player.uniqueId]!!.inc().toFloat().compareTo((evalBaseInts[evalBaseInts.indexOf(it).inc() % 5]))
-                        nearestPlayerTeamIndex = if (before > after) {
-                            evalBaseInts[evalBaseInts.indexOf(it).inc() % 5]
-                        } else {
-                            it
-                        }
-                    }
-                    nearestPlayerTeamIndex = null
-                }
-
-                val team = board.getTeam(nearestPlayerTeamIndex.toString()) ?: board.registerNewTeam(nearestPlayerTeamIndex.toString())
-                when (evalBaseInts.indexOf(nearestPlayerTeamIndex)) {
-                    0 -> {
-                        team.color(NamedTextColor.AQUA)
-                    }
-                    1 -> {
-                        team.color(NamedTextColor.GREEN)
-                    }
-                    2 -> {
-                        team.color(NamedTextColor.YELLOW)
-                    }
-                    3 -> {
-                        team.color(NamedTextColor.GOLD)
-                    }
-                    4 -> {
-                        team.color(NamedTextColor.RED)
-                    }
-                    else -> {
-                        team.color(NamedTextColor.GRAY)
-                    }
-                }
-                board.getPlayerTeam(player)?.removePlayer(player)
-                team.addPlayer(player)
+                PlayerData.wonPhases[player.uniqueId] = (PlayerData.wonPhases[player.uniqueId] ?: 0) +
+                        (sortedMaterialPoints.indexOfFirst { it.first == player.uniqueId })
 
                 player.sendMessage("フェーズ${PhaseData.elapsedPhases}開始！")
                 player.playSound(player, Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1f, 1f)
+            }
+        }
+
+        val taskTickGame = plugin.runTaskTimer(0, 20) {
+            BossbarUtil.updateBossbar(startedEpoch, secondsPerPhase, phases)
+
+            plugin.server.onlinePlayers.forEach { player ->
+                player.sendActionBar(Component.text("現在の順位: ${PlayerData.wonPhases.keys.indexOf(player.uniqueId).inc()}位"))
             }
         }
 
@@ -164,17 +153,10 @@ object GameManager {
             PhaseData.elapsedPhases = 0
             started = false
 
-            val sortedPhasesData = PlayerData.wonPhases.toList()
-                .sortedByDescending { it.second }
-                .filterNot { it.second == 0 }
-            val sortedPointsData = PlayerData.points.toList()
-                .sortedByDescending { it.second.sumOf { phase -> phase.values.sum() } }
-                .filterNot { it.second.sumOf { phase -> phase.values.sum() } == 0 }
-
             plugin.server.onlinePlayers.forEach { player ->
-                val yourRank = sortedPhasesData.map { it.first }.indexOf(player.uniqueId).inc()
-                val winner = if (sortedPhasesData.isNotEmpty()) {
-                    "\n勝者は${ChatColor.BOLD}${Bukkit.getOfflinePlayer(sortedPhasesData[0].first).name}${ChatColor.RESET}です" +
+                val yourRank = sortedPhasesData().map { it.first }.indexOf(player.uniqueId).inc()
+                val winner = if (sortedPhasesData().isNotEmpty()) {
+                    "\n勝者は${ChatColor.BOLD}${Bukkit.getOfflinePlayer(sortedPhasesData()[0].first).name}${ChatColor.RESET}です" +
                         "\nあなたは${if (yourRank == 0) "圏外" else "${yourRank}位"}でした"
                 } else {
                     "\n勝者はいませんでした"
@@ -192,11 +174,10 @@ object GameManager {
                         HoverEventSource {
                             HoverEvent.showText(
                                 Component.text(
-                                    sortedPhasesData.joinToString("\n") {
-                                        "#${sortedPhasesData.indexOf(it).inc()}" +
-                                            "${Bukkit.getOfflinePlayer(it.first).name}" +
-                                            "${it.second}勝利" +
-                                            "(${sortedPointsData.firstOrNull { p -> p.first == it.first }?.second?.sumOf { phase -> phase.values.sum() } ?: 0}pt)"
+                                    sortedPhasesData().joinToString("\n") {
+                                        "#${sortedPhasesData().indexOf(it).inc()} " +
+                                            "${Bukkit.getOfflinePlayer(it.first).name} " +
+                                            "(${sortedPointsData().firstOrNull { p -> p.first == it.first }?.second?.values?.sum() ?: 0}pt)"
                                     }
                                 )
                             )

@@ -4,7 +4,6 @@ import com.convallyria.languagy.api.language.key.TranslationKey
 import love.chihuyu.Itemhunt.Companion.plugin
 import love.chihuyu.Itemhunt.Companion.translator
 import love.chihuyu.game.GameManager
-import love.chihuyu.game.PhaseData
 import love.chihuyu.game.PlayerData
 import love.chihuyu.game.TargetItem
 import net.kyori.adventure.text.Component
@@ -84,7 +83,7 @@ object ScoreboardUtil {
             objTarget.getScore(s).score = scores.lastIndex - index
 
             plugin.server.onlinePlayers.forEach { player ->
-                objRanking.getScore(player).score = PlayerData.points[player.uniqueId]?.getOrNull(PhaseData.elapsedPhases.dec())?.values?.sum() ?: 0
+                objRanking.getScore(player).score = PlayerData.points[player.uniqueId]?.toList()?.sumOf { it.second } ?: 0
                 player.scoreboard = GameManager.board
             }
         }

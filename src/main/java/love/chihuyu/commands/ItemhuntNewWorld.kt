@@ -5,6 +5,7 @@ import dev.jorel.commandapi.executors.CommandExecutor
 import love.chihuyu.Itemhunt.Companion.mainWorld
 import love.chihuyu.Itemhunt.Companion.plugin
 import love.chihuyu.Itemhunt.Companion.prefix
+import net.kyori.adventure.text.Component
 import org.bukkit.World
 import org.bukkit.WorldCreator
 import org.bukkit.WorldType
@@ -15,7 +16,7 @@ object ItemhuntNewWorld {
     val main: CommandAPICommand = CommandAPICommand("createworld")
         .executes(
             CommandExecutor { sender, _ ->
-                sender.sendMessage("$prefix ワールドを再生成します")
+                plugin.server.broadcast(Component.text("$prefix ワールドを再生成します"))
 
                 val seed = Random().nextLong()
 
@@ -33,8 +34,7 @@ object ItemhuntNewWorld {
                 }
 
                 plugin.server.unloadWorld(plugin.server.getWorld("world")!!, false)
-
-                sender.sendMessage("$prefix 全てのワールドを再生成しました")
+                plugin.server.broadcast(Component.text("$prefix 全てのワールドを再生成しました"))
             }
         )
 }

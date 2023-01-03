@@ -4,7 +4,6 @@ import dev.jorel.commandapi.CommandAPICommand
 import dev.jorel.commandapi.arguments.BooleanArgument
 import dev.jorel.commandapi.arguments.IntegerArgument
 import dev.jorel.commandapi.arguments.ListArgumentBuilder
-import dev.jorel.commandapi.arguments.LongArgument
 import dev.jorel.commandapi.executors.CommandExecutor
 import love.chihuyu.Itemhunt.Companion.plugin
 import love.chihuyu.Itemhunt.Companion.prefix
@@ -60,56 +59,6 @@ object ItemhuntSettings {
                     return@CommandExecutor
                 }
                 sender.sendMessage("$prefix 出現する目標アイテムの数は${value}です")
-            }
-        )
-
-    private val setPhaseTime: CommandAPICommand = CommandAPICommand(ConfigKeys.PHASE_TIME.key)
-        .withArguments(
-            LongArgument("1フェーズあたりの時間(秒)", 1)
-        )
-        .executes(
-            CommandExecutor { sender, args ->
-                val value = args[0] as Long
-                plugin.config.set(ConfigKeys.PHASE_TIME.key, value)
-                plugin.saveConfig()
-                sender.sendMessage("$prefix フェーズの時間を設定しました")
-            }
-        )
-
-    private val getPhaseTime: CommandAPICommand = CommandAPICommand(ConfigKeys.PHASE_TIME.key)
-        .executes(
-            CommandExecutor { sender, _ ->
-                val value = plugin.config.getLong(ConfigKeys.PHASE_TIME.key)
-                if (value == 0L) {
-                    sender.sendMessage("$prefix 未設定の項目です")
-                    return@CommandExecutor
-                }
-                sender.sendMessage("$prefix 1フェーズあたりの時間は${value}秒です")
-            }
-        )
-
-    private val setPhases: CommandAPICommand = CommandAPICommand(ConfigKeys.PHASES.key)
-        .withArguments(
-            IntegerArgument("フェーズ数", 1)
-        )
-        .executes(
-            CommandExecutor { sender, args ->
-                val value = args[0] as Int
-                plugin.config.set(ConfigKeys.PHASES.key, value)
-                plugin.saveConfig()
-                sender.sendMessage("$prefix フェーズ数を設定しました")
-            }
-        )
-
-    private val getPhases: CommandAPICommand = CommandAPICommand(ConfigKeys.PHASES.key)
-        .executes(
-            CommandExecutor { sender, _ ->
-                val value = plugin.config.getInt(ConfigKeys.PHASES.key)
-                if (value == 0) {
-                    sender.sendMessage("$prefix 未設定の項目です")
-                    return@CommandExecutor
-                }
-                sender.sendMessage("$prefix フェーズ数は${value}です")
             }
         )
 
@@ -224,10 +173,6 @@ object ItemhuntSettings {
             getMaterials,
             setTargets,
             getTargets,
-            setPhaseTime,
-            getPhaseTime,
-            setPhases,
-            getPhases,
             setPvp,
             getPvp,
             setNightVision,
