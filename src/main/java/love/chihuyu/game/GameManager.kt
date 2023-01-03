@@ -84,7 +84,7 @@ object GameManager {
                         アイテムハント開始！
                         ${" ".repeat(2)}
                         ${ChatColor.GOLD}${ChatColor.STRIKETHROUGH}${ChatColor.BOLD}${" ".repeat(42)}${ChatColor.RESET}
-                        """.trimIndent()
+                    """.trimIndent()
                 )
             )
 
@@ -111,7 +111,7 @@ object GameManager {
             plugin.server.onlinePlayers.forEach { player ->
                 PlayerData.wonPhases[player.uniqueId] =
                     (PlayerData.wonPhases[player.uniqueId] ?: 0) +
-                            (sortedMaterialPoints.indexOfFirst { it.first == player.uniqueId })
+                    (sortedMaterialPoints.indexOfFirst { it.first == player.uniqueId })
                 val evalBaseInts = listOf(1, 2, 3, 4, 5).map { it * (plugin.server.onlinePlayers.size / 5f) }
                 var nearestPlayerTeamIndex: Float? = 0f
                 evalBaseInts.forEach {
@@ -175,15 +175,15 @@ object GameManager {
                 val yourRank = sortedPhasesData.map { it.first }.indexOf(player.uniqueId).inc()
                 val winner = if (sortedPhasesData.isNotEmpty()) {
                     "\n勝者は${ChatColor.BOLD}${Bukkit.getOfflinePlayer(sortedPhasesData[0].first).name}${ChatColor.RESET}です" +
-                            "\nあなたは${if (yourRank == 0) "圏外" else "${yourRank}位"}でした"
+                        "\nあなたは${if (yourRank == 0) "圏外" else "${yourRank}位"}でした"
                 } else {
                     "\n勝者はいませんでした"
                 }
 
                 val resultMsg = "${ChatColor.GOLD}${ChatColor.STRIKETHROUGH}${ChatColor.BOLD}${" ".repeat(42)}${ChatColor.RESET}" +
-                        "\nアイテムハント終了！" +
-                        "\n$winner" +
-                        "\n${ChatColor.GOLD}${ChatColor.STRIKETHROUGH}${ChatColor.BOLD}${" ".repeat(42)}${ChatColor.RESET}"
+                    "\nアイテムハント終了！" +
+                    "\n$winner" +
+                    "\n${ChatColor.GOLD}${ChatColor.STRIKETHROUGH}${ChatColor.BOLD}${" ".repeat(42)}${ChatColor.RESET}"
 
                 player.sendMessage(Component.text(resultMsg))
 
@@ -194,9 +194,9 @@ object GameManager {
                                 Component.text(
                                     sortedPhasesData.joinToString("\n") {
                                         "#${sortedPhasesData.indexOf(it).inc()}" +
-                                                "${Bukkit.getOfflinePlayer(it.first).name}" +
-                                                "${it.second}勝利" +
-                                                "(${sortedPointsData.firstOrNull { p -> p.first == it.first }?.second?.sumOf { phase -> phase.values.sum() } ?: 0}pt)"
+                                            "${Bukkit.getOfflinePlayer(it.first).name}" +
+                                            "${it.second}勝利" +
+                                            "(${sortedPointsData.firstOrNull { p -> p.first == it.first }?.second?.sumOf { phase -> phase.values.sum() } ?: 0}pt)"
                                     }
                                 )
                             )
